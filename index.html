@@ -6,109 +6,205 @@
     <title>Tetris Apex</title>
   </head>
   <body>
-    <div class="app">
-      <header class="chrome">
+    <div id="screen-title" class="screen">
+      <div class="menu-card">
         <h1>Tetris Apex</h1>
-        <p class="tagline">Phase 3 — Score, T-Spin, Level, Highscore</p>
-      </header>
+        <p class="tagline">Phase 4 — Themes</p>
+        <div class="menu-actions">
+          <button type="button" class="btn btn-primary" id="btn-play">Play</button>
+          <button type="button" class="btn" id="btn-howto">How to Play</button>
+          <button type="button" class="btn" id="btn-settings">Settings</button>
+          <button type="button" class="btn" id="btn-highscores">Highscores</button>
+        </div>
+        <p class="menu-hint">Enter startet · Esc Pause im Spiel</p>
+      </div>
+    </div>
 
-      <div class="stage">
-        <aside class="hud-slot hud-left">
-          <div class="hud-card">
-            <span class="hud-label">Hold</span>
-            <canvas id="hold" class="mini-well" width="96" height="80" aria-label="Hold"></canvas>
-          </div>
-          <div class="hud-card hud-stats">
-            <div class="hud-stat">
-              <span class="hud-label">Score</span>
-              <span id="hud-score" class="hud-value">0</span>
-            </div>
-            <div class="hud-stat-row">
-              <div class="hud-stat">
-                <span class="hud-label">Level</span>
-                <span id="hud-level" class="hud-value hud-value-sm">1</span>
-              </div>
-              <div class="hud-stat">
-                <span class="hud-label">Linien</span>
-                <span id="hud-lines" class="hud-value hud-value-sm">0</span>
-              </div>
-            </div>
-            <div class="hud-stat-row">
-              <div class="hud-stat">
-                <span class="hud-label">Combo</span>
-                <span id="hud-combo" class="hud-value hud-value-sm">0</span>
-              </div>
-              <div class="hud-stat">
-                <span class="hud-label">B2B</span>
-                <span id="hud-b2b" class="hud-b2b">off</span>
-              </div>
-            </div>
-            <div class="hud-stat-row">
-              <div class="hud-stat">
-                <span class="hud-label">Zeit</span>
-                <span id="hud-time" class="hud-value hud-value-sm">0:00</span>
-              </div>
-              <div class="hud-stat">
-                <span class="hud-label">PPS</span>
-                <span id="hud-pps" class="hud-value hud-value-sm">0.0</span>
-              </div>
-            </div>
-          </div>
-        </aside>
+    <div id="screen-howto" class="screen hidden">
+      <div class="menu-card menu-card-wide">
+        <h1>How to Play</h1>
+        <h2 class="section-title">Steuerung</h2>
+        <ul class="howto-list">
+          <li><kbd>←</kbd> <kbd>→</kbd> bewegen (DAS/ARR)</li>
+          <li><kbd>↓</kbd> Soft Drop</li>
+          <li><kbd>↑</kbd> / <kbd>X</kbd> drehen (CW, SRS)</li>
+          <li><kbd>Z</kbd> / <kbd>Strg</kbd> gegen den Uhrzeigersinn</li>
+          <li><kbd>A</kbd> 180°-Drehung</li>
+          <li><kbd>Leertaste</kbd> Hard Drop</li>
+          <li><kbd>C</kbd> / <kbd>Shift</kbd> Hold</li>
+          <li><kbd>Esc</kbd> Pause / Weiter</li>
+          <li><kbd>R</kbd> Neustart (im Spiel)</li>
+          <li><kbd>Enter</kbd> Play vom Titel</li>
+        </ul>
+        <h2 class="section-title">Punkte (× Level, außer Drops)</h2>
+        <ul class="howto-list">
+          <li>Single 100 · Double 300 · Triple 500 · Tetris 800</li>
+          <li>T-Spin Mini 100 · T-Spin 400 · Double 700 · Triple 1100</li>
+          <li>Back-to-Back ×1.5 (Tetris und T-Spin mit Linien)</li>
+          <li>Combo 50 × Combo × Level</li>
+          <li>Perfect Clear 800 / 1200 / 1800 / 2000</li>
+          <li>Soft Drop +1/Zelle · Hard Drop +2/Zelle</li>
+        </ul>
+        <button type="button" class="btn" id="btn-howto-back">Back</button>
+      </div>
+    </div>
 
-        <div class="well-wrap">
-          <canvas id="board" width="320" height="640" aria-label="Tetris-Feld"></canvas>
-          <div id="overlay" class="overlay hidden" role="dialog" aria-labelledby="overlay-title">
-            <div class="overlay-card">
-              <h2 id="overlay-title">Game Over</h2>
-              <p>Score: <span id="overlay-score">0</span></p>
-              <p>Linien: <span id="overlay-lines">0</span></p>
-              <form id="highscore-form" class="highscore-form hidden">
-                <label for="highscore-name">Name (3 Zeichen)</label>
-                <input
-                  id="highscore-name"
-                  name="name"
-                  maxlength="3"
-                  minlength="1"
-                  value="AAA"
-                  autocomplete="off"
-                  spellcheck="false"
-                  aria-label="Highscore-Name"
-                />
-                <button type="submit">Speichern</button>
-              </form>
-              <h3 class="highscore-heading">Top 10</h3>
-              <ol id="highscore-list" class="highscore-list"></ol>
-              <button type="button" id="restart">Neu starten</button>
-              <p class="overlay-hint">oder R drücken</p>
+    <div id="screen-settings" class="screen hidden">
+      <div class="menu-card">
+        <h1>Settings</h1>
+        <p class="tagline">Platzhalter — kommt in Phase 5</p>
+        <form class="settings-form" onsubmit="return false">
+          <label class="settings-row">
+            <span>Lautstärke</span>
+            <input type="range" min="0" max="100" value="70" disabled />
+            <span class="phase5-note">kommt in Phase 5</span>
+          </label>
+          <label class="settings-row">
+            <span>DAS</span>
+            <input type="number" value="133" disabled />
+            <span class="phase5-note">kommt in Phase 5</span>
+          </label>
+          <label class="settings-row">
+            <span>ARR</span>
+            <input type="number" value="33" disabled />
+            <span class="phase5-note">kommt in Phase 5</span>
+          </label>
+          <label class="settings-row">
+            <span>Ghost</span>
+            <input type="checkbox" checked disabled />
+            <span class="phase5-note">kommt in Phase 5</span>
+          </label>
+        </form>
+        <button type="button" class="btn" id="btn-settings-back">Back</button>
+      </div>
+    </div>
+
+    <div id="screen-highscores" class="screen hidden">
+      <div class="menu-card menu-card-wide">
+        <h1>Highscores</h1>
+        <ol id="title-highscore-list" class="highscore-list"></ol>
+        <button type="button" class="btn" id="btn-highscores-back">Back</button>
+      </div>
+    </div>
+
+    <div id="screen-play" class="screen screen-play hidden">
+      <div class="app">
+        <header class="chrome">
+          <h1>Tetris Apex</h1>
+          <p class="tagline">Phase 4 — Themes</p>
+        </header>
+
+        <div class="stage">
+          <aside class="hud-slot hud-left">
+            <div class="hud-card">
+              <span class="hud-label">Hold</span>
+              <canvas id="hold" class="mini-well" width="96" height="80" aria-label="Hold"></canvas>
+            </div>
+            <div class="hud-card hud-stats">
+              <div class="hud-stat">
+                <span class="hud-label">Score</span>
+                <span id="hud-score" class="hud-value">0</span>
+              </div>
+              <div class="hud-stat-row">
+                <div class="hud-stat">
+                  <span class="hud-label">Level</span>
+                  <span id="hud-level" class="hud-value hud-value-sm">1</span>
+                </div>
+                <div class="hud-stat">
+                  <span class="hud-label">Linien</span>
+                  <span id="hud-lines" class="hud-value hud-value-sm">0</span>
+                </div>
+              </div>
+              <div class="hud-stat-row">
+                <div class="hud-stat">
+                  <span class="hud-label">Combo</span>
+                  <span id="hud-combo" class="hud-value hud-value-sm">—</span>
+                </div>
+                <div class="hud-stat">
+                  <span class="hud-label">B2B</span>
+                  <span id="hud-b2b" class="hud-b2b">off</span>
+                </div>
+              </div>
+              <div class="hud-stat-row">
+                <div class="hud-stat">
+                  <span class="hud-label">Zeit</span>
+                  <span id="hud-time" class="hud-value hud-value-sm">0:00</span>
+                </div>
+                <div class="hud-stat">
+                  <span class="hud-label">PPS</span>
+                  <span id="hud-pps" class="hud-value hud-value-sm">0.0</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <div class="well-wrap">
+            <canvas id="board" width="320" height="640" aria-label="Tetris-Feld"></canvas>
+            <div id="overlay-pause" class="overlay hidden" role="dialog" aria-labelledby="pause-title">
+              <div class="overlay-card">
+                <h2 id="pause-title">Pause</h2>
+                <div class="overlay-actions">
+                  <button type="button" class="btn btn-primary" id="btn-resume">Resume</button>
+                  <button type="button" class="btn" id="btn-pause-title">Title</button>
+                </div>
+              </div>
+            </div>
+            <div id="overlay" class="overlay hidden" role="dialog" aria-labelledby="overlay-title">
+              <div class="overlay-card">
+                <h2 id="overlay-title">Game Over</h2>
+                <p>Score: <span id="overlay-score">0</span></p>
+                <p>Linien: <span id="overlay-lines">0</span></p>
+                <form id="highscore-form" class="highscore-form hidden">
+                  <label for="highscore-name">Name (3 Zeichen)</label>
+                  <input
+                    id="highscore-name"
+                    name="name"
+                    maxlength="3"
+                    minlength="1"
+                    value="AAA"
+                    autocomplete="off"
+                    spellcheck="false"
+                    aria-label="Highscore-Name"
+                  />
+                  <button type="submit" class="btn">Speichern</button>
+                </form>
+                <h3 class="highscore-heading">Top 10</h3>
+                <ol id="highscore-list" class="highscore-list"></ol>
+                <div class="overlay-actions">
+                  <button type="button" class="btn btn-primary" id="restart">Neu starten</button>
+                  <button type="button" class="btn" id="btn-gameover-title">Title</button>
+                </div>
+                <p class="overlay-hint">oder R drücken</p>
+              </div>
             </div>
           </div>
+
+          <aside class="hud-slot hud-right">
+            <div class="hud-card hud-card-next">
+              <span class="hud-label">Next</span>
+              <div class="next-list">
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+              </div>
+            </div>
+          </aside>
         </div>
 
-        <aside class="hud-slot hud-right">
-          <div class="hud-card hud-card-next">
-            <span class="hud-label">Next</span>
-            <div class="next-list">
-              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
-              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
-              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
-              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
-              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
-            </div>
-          </div>
-        </aside>
+        <p class="controls">
+          <kbd>←</kbd> <kbd>→</kbd> DAS/ARR ·
+          <kbd>↓</kbd> Soft Drop ·
+          <kbd>↑</kbd> / <kbd>X</kbd> CW ·
+          <kbd>Z</kbd> / <kbd>Strg</kbd> CCW ·
+          <kbd>A</kbd> 180 ·
+          <kbd>Leertaste</kbd> Hard Drop ·
+          <kbd>C</kbd> / <kbd>Shift</kbd> Hold ·
+          <kbd>Esc</kbd> Pause ·
+          <kbd>R</kbd> Neustart
+        </p>
       </div>
-
-      <p class="controls">
-        <kbd>←</kbd> <kbd>→</kbd> DAS/ARR ·
-        <kbd>↓</kbd> Soft Drop ·
-        <kbd>↑</kbd> / <kbd>X</kbd> CW ·
-        <kbd>Z</kbd> / <kbd>Ctrl</kbd> CCW ·
-        <kbd>A</kbd> 180 ·
-        <kbd>Leertaste</kbd> Hard Drop ·
-        <kbd>C</kbd> / <kbd>Shift</kbd> Hold ·
-        <kbd>R</kbd> Neustart
-      </p>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
