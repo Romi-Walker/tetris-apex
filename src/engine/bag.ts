@@ -25,31 +25,35 @@ function shuffle<T>(items: T[], rng: () => number): T[] {
 export function createBagRandomizer(
   injected?: PieceType[],
   seed?: number,
-): { next(): PieceType; reset(): void } {
+): { next(): PieceType; peek(n: number): PieceType[]; reset(): void } {
   const rng = seed !== undefined ? mulberry32(seed) : Math.random;
   const injectedCopy = injected ? injected.slice() : [];
   let queue: PieceType[] = [];
 
   function refill(): void {
-    queue = shuffle(PIECE_TYPES.slice() as PieceType[], rng);
+    queue.push(...shuffle(PIECE_TYPES.slice() as PieceType[], rng));
+  }
+
+  function ensure(n: number): void {
+    while (queue.length < n) {
+      refill();
+    }
   }
 
   function reset(): void {
     queue = injectedCopy.slice();
   }
 
+  function peek(n: number): PieceType[] {
+    ensure(n);
+    return queue.slice(0, n);
+  }
+
   function next(): PieceType {
-    if (queue.length === 0) {
-      refill();
-    }
-    const piece = queue.shift();
-    if (!piece) {
-      refill();
-      return queue.shift()!;
-    }
-    return piece;
+    ensure(1);
+    return queue.shift()!;
   }
 
   reset();
-  return { next, reset };
+  return { next, peek, reset };
 }

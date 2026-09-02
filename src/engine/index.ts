@@ -1,4 +1,5 @@
 export { createGame } from "./game";
+export { createBagRandomizer } from "./bag";
 export { emptyGrid, cloneGrid } from "./board";
 export { PIECE_TYPES, cellsOf } from "./pieces";
 export {

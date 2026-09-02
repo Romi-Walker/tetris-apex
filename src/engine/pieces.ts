@@ -1,6 +1,6 @@
 import type { PieceType, Position } from "./types";
 
-/** 4-state matrices (SRS shapes, no wall-kicks). Offsets relative to piece origin. */
+/** 4-state matrices (SRS shapes). Offsets relative to piece origin. */
 const SHAPES: Record<PieceType, ReadonlyArray<ReadonlyArray<readonly [number, number]>>> = {
   I: [
     [[0, 1], [1, 1], [2, 1], [3, 1]],
@@ -48,13 +48,17 @@ const SHAPES: Record<PieceType, ReadonlyArray<ReadonlyArray<readonly [number, nu
 
 export const PIECE_TYPES: readonly PieceType[] = ["I", "O", "T", "S", "Z", "J", "L"];
 
-/** Guideline-ish spawn: I in rows 0–1, others in the hidden band. */
+/** Guideline spawn column (3-wide pieces left-rounded; I/O centered in 4-col box). */
 export function spawnOriginX(_type: PieceType): number {
   return 3;
 }
 
+/**
+ * Origin row so that at least one mino peeks into the visible well (y >= 2).
+ * With current SRS matrices, y = 1 puts J/L/T/S/Z/O on rows 1–2 and I on row 2.
+ */
 export function spawnOriginY(_type: PieceType): number {
-  return 0;
+  return 1;
 }
 
 export function cellsOf(

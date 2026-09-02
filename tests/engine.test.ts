@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   createGame,
+  createBagRandomizer,
   emptyGrid,
-  type Grid,
 } from "../src/engine";
 
 function cells(g: ReturnType<typeof createGame>) {
@@ -20,13 +20,13 @@ function cellKey(c: { x: number; y: number }): string {
 describe("collision", () => {
   it("cannot move through walls", () => {
     const game = createGame({ bag: ["I", "T"] });
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 19; i++) {
       game.dispatch("left");
     }
     const leftXs = cells(game).map((c) => c.x);
     expect(Math.min(...leftXs)).toBe(0);
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 19; i++) {
       game.dispatch("right");
     }
     const rightXs = cells(game).map((c) => c.x);
@@ -35,7 +35,7 @@ describe("collision", () => {
 
   it("cannot move through locked cells", () => {
     const grid = emptyGrid();
-    grid[1]![2] = "O";
+    grid[2]![2] = "O";
     const game = createGame({ bag: ["T", "I"], grid });
     const xBefore = game.getSnapshot().active?.x;
     game.dispatch("left");
@@ -132,7 +132,7 @@ describe("gravity", () => {
       gravityMs: 100,
       lockMs: 500,
     });
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 19; i++) {
       grounded.dispatch("tick", 100);
     }
     expect(grounded.getSnapshot().active?.y).toBe(20);
@@ -154,7 +154,7 @@ describe("gravity", () => {
 });
 
 describe("rotation", () => {
-  it("CW rotate of T changes occupancy; blocked rotate is rejected without kick", () => {
+  it("CW rotate of T changes occupancy", () => {
     const game = createGame({ bag: ["T", "I"] });
     const before = cells(game).map(cellKey);
     const rot0 = game.getSnapshot().active?.rotation;
@@ -162,13 +162,6 @@ describe("rotation", () => {
     const after = cells(game).map(cellKey);
     expect(game.getSnapshot().active?.rotation).toBe(((rot0 ?? 0) + 1) % 4);
     expect(after).not.toEqual(before);
-
-    const grid: Grid = emptyGrid();
-    grid[2]![4] = "I";
-    const blocked = createGame({ bag: ["T", "I"], grid });
-    blocked.dispatch("cw");
-    expect(blocked.getSnapshot().active?.rotation).toBe(0);
-    expect(cells(blocked).map(cellKey)).toEqual(before);
   });
 });
 
@@ -180,5 +173,184 @@ describe("restart", () => {
     expect(playable.getSnapshot().gameOver).toBe(false);
     expect(playable.getSnapshot().active?.type).toBe("I");
     expect(playable.getSnapshot().linesClearedTotal).toBe(0);
+  });
+});
+
+
+const ALL = ["I", "J", "L", "O", "S", "T", "Z"] as const;
+
+describe("SRS kicks", () => {
+  it("rotation against a wall succeeds via SRS kick", () => {
+    const game = createGame({ bag: ["T", "I"], gravityMs: 1e9 });
+    game.dispatch("ccw");
+    expect(game.getSnapshot().active?.rotation).toBe(3);
+    for (let i = 0; i < 10; i++) {
+      game.dispatch("right");
+    }
+    const before = game.getSnapshot().active;
+    expect(before?.x).toBe(8);
+    game.dispatch("cw");
+    const after = game.getSnapshot().active;
+    expect(after?.rotation).toBe(0);
+    expect(after?.x).toBe((before?.x ?? 0) - 1);
+  });
+
+  it("rotation is rejected when no kick fits", () => {
+    const grid = emptyGrid();
+    for (let y = 0; y < 22; y++) {
+      for (let x = 0; x < 10; x++) {
+        grid[y]![x] = "I";
+      }
+    }
+    grid[1]![4] = null;
+    grid[2]![3] = null;
+    grid[2]![4] = null;
+    grid[2]![5] = null;
+    const game = createGame({ bag: ["T"], grid, gravityMs: 1e9 });
+    expect(game.getSnapshot().gameOver).toBe(false);
+    expect(game.getSnapshot().active?.rotation).toBe(0);
+    game.dispatch("cw");
+    expect(game.getSnapshot().active?.rotation).toBe(0);
+    game.dispatch("ccw");
+    expect(game.getSnapshot().active?.rotation).toBe(0);
+    expect(cells(game).map(cellKey)).toEqual(["4,1", "3,2", "4,2", "5,2"]);
+  });
+
+  it("180 rotate changes occupancy", () => {
+    const game = createGame({ bag: ["T", "I"], gravityMs: 1e9 });
+    const before = cells(game).map(cellKey);
+    game.dispatch("flip");
+    expect(game.getSnapshot().active?.rotation).toBe(2);
+    expect(cells(game).map(cellKey)).not.toEqual(before);
+  });
+});
+
+describe("hold", () => {
+  it("stores, ignores until lock, then swaps", () => {
+    const game = createGame({ bag: ["T", "I", "O", "L"] });
+    expect(game.getSnapshot().active?.type).toBe("T");
+    expect(game.getSnapshot().hold).toBeNull();
+    expect(game.getSnapshot().canHold).toBe(true);
+
+    game.dispatch("hold");
+    expect(game.getSnapshot().hold).toBe("T");
+    expect(game.getSnapshot().active?.type).toBe("I");
+    expect(game.getSnapshot().canHold).toBe(false);
+
+    game.dispatch("hold");
+    expect(game.getSnapshot().hold).toBe("T");
+    expect(game.getSnapshot().active?.type).toBe("I");
+
+    game.dispatch("hard");
+    expect(game.getSnapshot().active?.type).toBe("O");
+    expect(game.getSnapshot().canHold).toBe(true);
+
+    game.dispatch("hold");
+    expect(game.getSnapshot().hold).toBe("O");
+    expect(game.getSnapshot().active?.type).toBe("T");
+    expect(game.getSnapshot().canHold).toBe(false);
+  });
+});
+
+describe("7-bag", () => {
+  it("seeded bags are permutations of IOTSZJL", () => {
+    const rand = createBagRandomizer(undefined, 20260902);
+    const bag1 = Array.from({ length: 7 }, () => rand.next());
+    const bag2 = Array.from({ length: 7 }, () => rand.next());
+    expect(new Set(bag1).size).toBe(7);
+    expect([...bag1].sort()).toEqual([...ALL]);
+    expect(new Set(bag2).size).toBe(7);
+    expect([...bag2].sort()).toEqual([...ALL]);
+  });
+
+  it("next queue is always 5 and matches the following spawn", () => {
+    const game = createGame({ bag: ["T", "I", "O", "L", "J", "S", "Z"] });
+    const snap = game.getSnapshot();
+    expect(snap.active?.type).toBe("T");
+    expect(snap.next).toHaveLength(5);
+    expect(snap.next[0]).toBe("I");
+    expect(snap.next.slice(0, 5)).toEqual(["I", "O", "L", "J", "S"]);
+    game.dispatch("hard");
+    expect(game.getSnapshot().active?.type).toBe("I");
+    expect(game.getSnapshot().next[0]).toBe("O");
+    expect(game.getSnapshot().next).toHaveLength(5);
+  });
+});
+
+describe("DAS/ARR", () => {
+  it("moves immediately, then after DAS, then on ARR", () => {
+    const game = createGame({
+      bag: ["T", "I"],
+      gravityMs: 1e9,
+      dasMs: 133,
+      arrMs: 33,
+    });
+    const x0 = game.getSnapshot().active!.x;
+    game.dispatch("leftDown");
+    expect(game.getSnapshot().active?.x).toBe(x0 - 1);
+    game.dispatch("tick", 132);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 1);
+    game.dispatch("tick", 1);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 2);
+    game.dispatch("tick", 33);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 3);
+  });
+});
+
+describe("lock move-reset", () => {
+  it("successful shift resets lockElapsed toward 0", () => {
+    const game = createGame({
+      bag: ["O", "T"],
+      gravityMs: 100,
+      lockMs: 500,
+    });
+    while (!game.getSnapshot().locking) {
+      game.dispatch("tick", 100);
+    }
+    expect(game.getSnapshot().locking).toBe(true);
+    game.dispatch("tick", 200);
+    expect(game.getSnapshot().lockElapsed).toBeGreaterThan(0);
+    const elapsed = game.getSnapshot().lockElapsed;
+    game.dispatch("left");
+    expect(game.getSnapshot().lockElapsed).toBe(0);
+    expect(elapsed).toBeGreaterThan(0);
+    expect(game.getSnapshot().locking).toBe(true);
+    expect(game.getSnapshot().active?.type).toBe("O");
+  });
+});
+
+describe("spawn peek", () => {
+  it("T and I occupy a visible row at spawn", () => {
+    const t = createGame({ bag: ["T", "I"] });
+    expect(t.getSnapshot().active!.cells.some((c) => c.y >= 2)).toBe(true);
+    const i = createGame({ bag: ["I", "T"] });
+    expect(i.getSnapshot().active!.cells.some((c) => c.y >= 2)).toBe(true);
+  });
+});
+
+describe("ghost", () => {
+  it("ghost Y is the hard-drop destination without locking", () => {
+    const game = createGame({ bag: ["O", "T"] });
+    const ghost = game.getSnapshot().ghost;
+    expect(ghost.length).toBe(4);
+    game.dispatch("hard");
+    const grid = game.getSnapshot().grid;
+    for (const c of ghost) {
+      expect(grid[c.y]![c.x]).toBe("O");
+    }
+    expect(game.getSnapshot().active?.type).toBe("T");
+  });
+});
+
+describe("soft drop", () => {
+  it("drops one cell immediately on softDown", () => {
+    const game = createGame({ bag: ["T", "I"], gravityMs: 1e9, softDropMs: 50 });
+    const y0 = game.getSnapshot().active!.y;
+    game.dispatch("softDown");
+    expect(game.getSnapshot().active?.y).toBe(y0 + 1);
+    game.dispatch("tick", 49);
+    expect(game.getSnapshot().active?.y).toBe(y0 + 1);
+    game.dispatch("tick", 1);
+    expect(game.getSnapshot().active?.y).toBe(y0 + 2);
   });
 });
