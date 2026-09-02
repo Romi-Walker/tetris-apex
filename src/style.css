@@ -1,0 +1,194 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #07080b;
+  color: #e8eaef;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 40px;
+  gap: 18px;
+}
+
+.chrome {
+  text-align: center;
+}
+
+.chrome h1 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  font-size: 1.6rem;
+}
+
+.tagline {
+  margin: 6px 0 0;
+  color: #9aa3b5;
+  font-size: 0.85rem;
+}
+
+.stage {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.hud-slot {
+  width: 108px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hud-card {
+  background: rgba(22, 24, 31, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 88px;
+}
+
+.hud-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b93a7;
+}
+
+.hud-value {
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-soon {
+  color: #5c6475;
+  font-size: 0.8rem;
+}
+
+.well-wrap {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 8px;
+  background: rgba(12, 13, 18, 0.85);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+#board {
+  display: block;
+  width: 320px;
+  height: 640px;
+  background: #0b0c10;
+  border-radius: 6px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 7, 10, 0.72);
+  border-radius: 8px;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay-card {
+  background: rgba(20, 22, 28, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 22px 26px;
+  text-align: center;
+  min-width: 200px;
+}
+
+.overlay-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.overlay-card p {
+  margin: 0 0 14px;
+  color: #c5cad6;
+}
+
+.overlay-hint {
+  margin: 10px 0 0 !important;
+  font-size: 0.75rem;
+  color: #8b93a7 !important;
+}
+
+#restart {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #1c2230;
+  color: #f2f4f8;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font: inherit;
+}
+
+#restart:hover {
+  background: #2a3346;
+}
+
+.controls {
+  max-width: 560px;
+  text-align: center;
+  color: #9aa3b5;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: #16181f;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .stage {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hud-slot {
+    width: 320px;
+    flex-direction: row;
+  }
+
+  .hud-card {
+    flex: 1;
+    min-height: 64px;
+  }
+
+  #board {
+    width: min(320px, 86vw);
+    height: auto;
+    aspect-ratio: 10 / 20;
+  }
+}

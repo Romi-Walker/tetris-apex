@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tetris Apex</title>
+  </head>
+  <body>
+    <div class="app">
+      <header class="chrome">
+        <h1>Tetris Apex</h1>
+        <p class="tagline">Phase 0+1 — Kernloop</p>
+      </header>
+
+      <div class="stage">
+        <aside class="hud-slot" aria-hidden="true">
+          <div class="hud-card">
+            <span class="hud-label">Hold</span>
+            <span class="hud-soon">bald</span>
+          </div>
+        </aside>
+
+        <div class="well-wrap">
+          <canvas id="board" width="320" height="640" aria-label="Tetris-Feld"></canvas>
+          <div id="overlay" class="overlay hidden" role="dialog" aria-labelledby="overlay-title">
+            <div class="overlay-card">
+              <h2 id="overlay-title">Game Over</h2>
+              <p>Linien: <span id="overlay-lines">0</span></p>
+              <button type="button" id="restart">Neu starten</button>
+              <p class="overlay-hint">oder R drücken</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hud-slot">
+          <div class="hud-card">
+            <span class="hud-label">Linien</span>
+            <span id="hud-lines" class="hud-value">0</span>
+          </div>
+          <div class="hud-card">
+            <span class="hud-label">Next</span>
+            <span class="hud-soon">bald</span>
+          </div>
+        </aside>
+      </div>
+
+      <p class="controls">
+        <kbd>←</kbd> <kbd>→</kbd> bewegen ·
+        <kbd>↑</kbd> / <kbd>X</kbd> drehen ·
+        <kbd>↓</kbd> Soft Drop ·
+        <kbd>Leertaste</kbd> Hard Drop ·
+        <kbd>R</kbd> Neustart
+      </p>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
