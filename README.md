@@ -76,3 +76,5 @@ Intern 10x22 (Zeilen 0-1 Hidden Spawn). Spawn-Origin Y = 1 (Peek in Zeile 2). Le
 Scoring (x Level, ausser Soft/Hard Drop): Single 100, Double 300, Triple 500, Tetris 800; T-Spin Mini 100, T-Spin 400, Double 700, Triple 1100; B2B x1.5 auf Tetris und T-Spin/Mini mit mindestens 1 Linie; Combo 50 x comboCount x Level; Perfect Clear 800/1200/1800/2000. Soft Drop +1/Zelle, Hard Drop +2/Zelle.
 
 Beide Horizontal-Tasten gehalten: die zuletzt gedrueckte Seite gewinnt; Loslassen der aktiven Seite nimmt die andere wieder auf (wie ein frischer Druck).
+
+Deploy: Branch gh-pages (Vite dist). pages.yml needs the OAuth workflow scope and may be missing on main. The live URL does not depend on it.

@@ -73,4 +73,4 @@ QA / Release. README commands, extra tests, GitHub Pages.
 - Extra tests: broken Settings JSON, DAS/ARR setters, Colorblind, Reduce Motion
 - Pages: vite `base: "/tetris-apex/"`, workflow `.github/workflows/pages.yml`
 - FX renderer-only (tick/input never pause); particle cap
-- v1 overall check is Susi's job after this PR
+- v1 overall check: Susi Go, keine Blocker/Majors
