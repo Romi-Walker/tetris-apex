@@ -9,7 +9,7 @@
     <div class="app">
       <header class="chrome">
         <h1>Tetris Apex</h1>
-        <p class="tagline">Phase 2 — SRS, Hold, Next, Ghost, DAS/ARR</p>
+        <p class="tagline">Phase 3 — Score, T-Spin, Level, Highscore</p>
       </header>
 
       <div class="stage">
@@ -18,9 +18,41 @@
             <span class="hud-label">Hold</span>
             <canvas id="hold" class="mini-well" width="96" height="80" aria-label="Hold"></canvas>
           </div>
-          <div class="hud-card hud-card-compact">
-            <span class="hud-label">Linien</span>
-            <span id="hud-lines" class="hud-value">0</span>
+          <div class="hud-card hud-stats">
+            <div class="hud-stat">
+              <span class="hud-label">Score</span>
+              <span id="hud-score" class="hud-value">0</span>
+            </div>
+            <div class="hud-stat-row">
+              <div class="hud-stat">
+                <span class="hud-label">Level</span>
+                <span id="hud-level" class="hud-value hud-value-sm">1</span>
+              </div>
+              <div class="hud-stat">
+                <span class="hud-label">Linien</span>
+                <span id="hud-lines" class="hud-value hud-value-sm">0</span>
+              </div>
+            </div>
+            <div class="hud-stat-row">
+              <div class="hud-stat">
+                <span class="hud-label">Combo</span>
+                <span id="hud-combo" class="hud-value hud-value-sm">0</span>
+              </div>
+              <div class="hud-stat">
+                <span class="hud-label">B2B</span>
+                <span id="hud-b2b" class="hud-b2b">off</span>
+              </div>
+            </div>
+            <div class="hud-stat-row">
+              <div class="hud-stat">
+                <span class="hud-label">Zeit</span>
+                <span id="hud-time" class="hud-value hud-value-sm">0:00</span>
+              </div>
+              <div class="hud-stat">
+                <span class="hud-label">PPS</span>
+                <span id="hud-pps" class="hud-value hud-value-sm">0.0</span>
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -29,7 +61,24 @@
           <div id="overlay" class="overlay hidden" role="dialog" aria-labelledby="overlay-title">
             <div class="overlay-card">
               <h2 id="overlay-title">Game Over</h2>
+              <p>Score: <span id="overlay-score">0</span></p>
               <p>Linien: <span id="overlay-lines">0</span></p>
+              <form id="highscore-form" class="highscore-form hidden">
+                <label for="highscore-name">Name (3 Zeichen)</label>
+                <input
+                  id="highscore-name"
+                  name="name"
+                  maxlength="3"
+                  minlength="1"
+                  value="AAA"
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-label="Highscore-Name"
+                />
+                <button type="submit">Speichern</button>
+              </form>
+              <h3 class="highscore-heading">Top 10</h3>
+              <ol id="highscore-list" class="highscore-list"></ol>
               <button type="button" id="restart">Neu starten</button>
               <p class="overlay-hint">oder R drücken</p>
             </div>

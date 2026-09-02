@@ -83,6 +83,38 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.hud-value-sm {
+  font-size: 1.15rem;
+}
+
+.hud-stats {
+  gap: 10px;
+}
+
+.hud-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.hud-b2b {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8b93a7;
+}
+
+.hud-b2b-on {
+  color: #f0d27a;
+  font-weight: 650;
+}
+
 .mini-well {
   display: block;
   width: 100%;
@@ -141,9 +173,11 @@ body {
   background: rgba(20, 22, 28, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  padding: 22px 26px;
+  padding: 18px 20px;
   text-align: center;
-  min-width: 200px;
+  min-width: 240px;
+  max-height: 100%;
+  overflow: auto;
 }
 
 .overlay-card h2 {
@@ -175,6 +209,78 @@ body {
 
 #restart:hover {
   background: #2a3346;
+}
+
+.highscore-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.highscore-form.hidden {
+  display: none;
+}
+
+.highscore-form label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8b93a7;
+}
+
+#highscore-name {
+  width: 4.5rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font: inherit;
+  font-size: 1.1rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #12141a;
+  color: #f2f4f8;
+}
+
+.highscore-form button,
+#restart {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #1c2230;
+  color: #f2f4f8;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.highscore-form button:hover {
+  background: #2a3346;
+}
+
+.highscore-heading {
+  margin: 4px 0 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b93a7;
+}
+
+.highscore-list {
+  margin: 0 0 14px;
+  padding: 0 0 0 18px;
+  text-align: left;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: #c5cad6;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.highscore-list li {
+  margin: 0 0 4px;
 }
 
 .controls {

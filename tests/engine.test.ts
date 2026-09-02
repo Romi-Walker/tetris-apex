@@ -354,3 +354,160 @@ describe("soft drop", () => {
     expect(game.getSnapshot().active?.y).toBe(y0 + 2);
   });
 });
+
+
+function wellHoles36(fromRow: number, toRow: number) {
+  const grid = emptyGrid();
+  for (let y = fromRow; y <= toRow; y++) {
+    for (let x = 0; x < 10; x++) {
+      if (x < 3 || x > 6) {
+        grid[y]![x] = "Z";
+      }
+    }
+  }
+  return grid;
+}
+
+describe("level-up", () => {
+  it("10 lines -> level 2; 20 lines -> level 3", () => {
+    const bag = Array.from({ length: 24 }, () => "I" as const);
+    const ten = createGame({
+      bag,
+      grid: wellHoles36(12, 21),
+      gravityMs: 1e9,
+    });
+    for (let i = 0; i < 10; i++) {
+      ten.dispatch("hard");
+    }
+    expect(ten.getSnapshot().linesClearedTotal).toBe(10);
+    expect(ten.getSnapshot().level).toBe(2);
+
+    const twenty = createGame({
+      bag,
+      grid: wellHoles36(2, 21),
+      gravityMs: 1e9,
+    });
+    for (let i = 0; i < 20; i++) {
+      twenty.dispatch("hard");
+    }
+    expect(twenty.getSnapshot().linesClearedTotal).toBe(20);
+    expect(twenty.getSnapshot().level).toBe(3);
+  });
+});
+
+describe("drops score", () => {
+  it("soft drop awards 1 per cell, not times level", () => {
+    const game = createGame({ bag: ["T", "I"], gravityMs: 1e9 });
+    const y0 = game.getSnapshot().active!.y;
+    game.dispatch("softDown");
+    expect(game.getSnapshot().active?.y).toBe(y0 + 1);
+    expect(game.getSnapshot().score).toBe(1);
+  });
+
+  it("hard drop awards 2 per cell traversed, not times level", () => {
+    const game = createGame({ bag: ["O", "T"], gravityMs: 1e9 });
+    const y0 = game.getSnapshot().active!.y;
+    game.dispatch("hard");
+    const cells = 20 - y0;
+    expect(game.getSnapshot().score).toBe(cells * 2);
+    expect(game.getSnapshot().piecesLocked).toBe(1);
+  });
+});
+
+describe("T-Spin detection", () => {
+  it("awards a 3-corner T-Spin after rotate", () => {
+    const grid = emptyGrid();
+    grid[19]![3] = "I";
+    grid[21]![3] = "I";
+    grid[21]![5] = "I";
+    const game = createGame({
+      bag: ["T", "I"],
+      grid,
+      gravityMs: 1,
+      lockMs: 80,
+    });
+    game.dispatch("cw");
+    let guard = 0;
+    while (!game.getSnapshot().locking && guard++ < 80) {
+      game.dispatch("tick", 1);
+    }
+    expect(game.getSnapshot().locking).toBe(true);
+    expect(game.getSnapshot().active?.y).toBe(19);
+    game.dispatch("cw");
+    expect(game.getSnapshot().active?.rotation).toBe(2);
+    const before = game.getSnapshot().score;
+    game.dispatch("tick", 80);
+    expect(game.getSnapshot().piecesLocked).toBe(1);
+    expect(game.getSnapshot().score - before).toBe(400);
+    expect(game.getSnapshot().lastClearCount).toBe(0);
+  });
+
+  it("awards Mini when the T-Spin used a wall-kick", () => {
+    const grid = emptyGrid();
+    grid[21]![4] = "I";
+    grid[21]![2] = "I";
+    grid[19]![2] = "I";
+    const game = createGame({
+      bag: ["T", "I"],
+      grid,
+      gravityMs: 1,
+      lockMs: 80,
+    });
+    let guard = 0;
+    while (!game.getSnapshot().locking && guard++ < 80) {
+      game.dispatch("tick", 1);
+    }
+    expect(game.getSnapshot().locking).toBe(true);
+    const x0 = game.getSnapshot().active!.x;
+    game.dispatch("cw");
+    expect(game.getSnapshot().active?.rotation).toBe(1);
+    expect(game.getSnapshot().active?.x).not.toBe(x0);
+    const before = game.getSnapshot().score;
+    game.dispatch("tick", 80);
+    expect(game.getSnapshot().score - before).toBe(100);
+  });
+});
+
+describe("lock-reset cap", () => {
+  it("after 15 successful resets a grounded piece locks on the next downward fail", () => {
+    const game = createGame({
+      bag: ["O", "T"],
+      gravityMs: 100,
+      lockMs: 5000,
+    });
+    let guard = 0;
+    while (!game.getSnapshot().locking && guard++ < 40) {
+      game.dispatch("tick", 100);
+    }
+    expect(game.getSnapshot().locking).toBe(true);
+    expect(game.getSnapshot().active?.type).toBe("O");
+    for (let i = 0; i < 15; i++) {
+      game.dispatch(i % 2 === 0 ? "left" : "right");
+    }
+    expect(game.getSnapshot().active?.type).toBe("O");
+    expect(game.getSnapshot().locking).toBe(true);
+    game.dispatch("softDown");
+    expect(game.getSnapshot().active?.type).toBe("T");
+    expect(game.getSnapshot().piecesLocked).toBe(1);
+  });
+});
+
+describe("combo in game", () => {
+  it("second consecutive single at level 1 adds 50", () => {
+    const grid = emptyGrid();
+    grid[19]![0] = "J";
+    for (let x = 0; x < 10; x++) {
+      if (x < 3 || x > 6) {
+        grid[20]![x] = "Z";
+        grid[21]![x] = "Z";
+      }
+    }
+    const game = createGame({ bag: ["I", "I", "T"], grid, gravityMs: 1e9 });
+    game.dispatch("hard");
+    const afterFirst = game.getSnapshot().score;
+    game.dispatch("hard");
+    const afterSecond = game.getSnapshot().score;
+    const secondGain = afterSecond - afterFirst;
+    expect(secondGain).toBe(188);
+  });
+});
