@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tetris Apex</title>
+    <script type="module" crossorigin src="/tetris-apex/assets/index-DxI15MYQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/tetris-apex/assets/index-DKRvX4k2.css">
+  </head>
+  <body>
+    <div id="app-root">
+    <div id="screen-title" class="screen">
+      <div class="menu-card">
+        <h1>Tetris Apex</h1>
+        <p class="tagline">Phase 6 — QA / Release</p>
+        <div class="menu-actions">
+          <button type="button" class="btn btn-primary" id="btn-play">Play</button>
+          <button type="button" class="btn" id="btn-howto">How to Play</button>
+          <button type="button" class="btn" id="btn-settings">Settings</button>
+          <button type="button" class="btn" id="btn-highscores">Highscores</button>
+        </div>
+        <p class="menu-hint">Enter startet · Esc Pause im Spiel</p>
+      </div>
+    </div>
+
+    <div id="first-run" class="first-run hidden" role="dialog" aria-labelledby="first-run-title">
+      <div class="menu-card">
+        <p class="howto-kicker">How to Play</p>
+        <h1 id="first-run-title">Ziel</h1>
+        <p id="first-run-body" class="howto-body"></p>
+        <div class="howto-actions">
+          <button type="button" class="btn" id="btn-first-skip">Skip</button>
+          <button type="button" class="btn" id="btn-first-next">Weiter</button>
+          <button type="button" class="btn hidden" id="btn-first-done">Fertig</button>
+          <button type="button" class="btn btn-primary" id="btn-first-play">Play</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-howto" class="screen hidden">
+      <div class="menu-card menu-card-wide">
+        <p class="howto-kicker">How to Play</p>
+        <h1 id="howto-title">Ziel</h1>
+        <p id="howto-body" class="howto-body"></p>
+        <div class="howto-actions">
+          <button type="button" class="btn" id="btn-howto-skip">Skip</button>
+          <button type="button" class="btn" id="btn-howto-next">Weiter</button>
+          <button type="button" class="btn hidden" id="btn-howto-done">Fertig</button>
+        </div>
+        <button type="button" class="btn btn-ghost" id="btn-howto-back">Back</button>
+      </div>
+    </div>
+
+    <div id="screen-settings" class="screen hidden">
+      <div class="menu-card menu-card-wide">
+        <h1>Settings</h1>
+        <form class="settings-form" id="settings-form" onsubmit="return false">
+          <label class="settings-row">
+            <span>Master</span>
+            <input type="range" id="set-master" min="0" max="100" value="70" />
+          </label>
+          <label class="settings-row">
+            <span>SFX</span>
+            <input type="range" id="set-sfx" min="0" max="100" value="80" />
+          </label>
+          <label class="settings-row">
+            <span>Musik</span>
+            <input type="range" id="set-music" min="0" max="100" value="55" />
+          </label>
+          <label class="settings-row settings-row-check">
+            <span>Mute</span>
+            <input type="checkbox" id="set-mute" />
+          </label>
+          <label class="settings-row">
+            <span>DAS ms</span>
+            <input type="number" id="set-das" min="0" max="1000" value="133" />
+          </label>
+          <label class="settings-row">
+            <span>ARR ms</span>
+            <input type="number" id="set-arr" min="0" max="500" value="33" />
+          </label>
+          <label class="settings-row settings-row-check">
+            <span>Ghost</span>
+            <input type="checkbox" id="set-ghost" checked />
+          </label>
+          <label class="settings-row settings-row-check">
+            <span>Grid</span>
+            <input type="checkbox" id="set-grid" checked />
+          </label>
+          <label class="settings-row">
+            <span>Colorblind</span>
+            <select id="set-colorblind">
+              <option value="off">Off</option>
+              <option value="deuteranopia">Deuteranopia</option>
+              <option value="protanopia">Protanopia</option>
+              <option value="high-contrast">High-contrast</option>
+            </select>
+          </label>
+          <label class="settings-row settings-row-check">
+            <span>Reduce Motion</span>
+            <input type="checkbox" id="set-reduce" />
+          </label>
+          <h2 class="section-title">Steuerung</h2>
+          <div id="set-remap" class="remap-grid">
+            <label>Links <button type="button" class="btn remap-btn" data-remap="left">ArrowLeft</button></label>
+            <label>Rechts <button type="button" class="btn remap-btn" data-remap="right">ArrowRight</button></label>
+            <label>Soft <button type="button" class="btn remap-btn" data-remap="soft">ArrowDown</button></label>
+            <label>Hard <button type="button" class="btn remap-btn" data-remap="hard">Space</button></label>
+            <label>CW <button type="button" class="btn remap-btn" data-remap="cw">ArrowUp</button></label>
+            <label>CCW <button type="button" class="btn remap-btn" data-remap="ccw">KeyZ</button></label>
+            <label>180 <button type="button" class="btn remap-btn" data-remap="flip">KeyA</button></label>
+            <label>Hold <button type="button" class="btn remap-btn" data-remap="hold">KeyC</button></label>
+            <label>Pause <button type="button" class="btn remap-btn" data-remap="pause">Escape</button></label>
+          </div>
+          <button type="button" class="btn" id="btn-fullscreen">Fullscreen</button>
+        </form>
+        <button type="button" class="btn" id="btn-settings-back">Back</button>
+      </div>
+    </div>
+
+    <div id="screen-highscores" class="screen hidden">
+      <div class="menu-card menu-card-wide">
+        <h1>Highscores</h1>
+        <ol id="title-highscore-list" class="highscore-list"></ol>
+        <button type="button" class="btn" id="btn-highscores-back">Back</button>
+      </div>
+    </div>
+
+    <div id="screen-play" class="screen screen-play hidden">
+      <div class="app">
+        <header class="chrome">
+          <h1>Tetris Apex</h1>
+          <p class="tagline">Phase 5 — Audio, Settings, Touch</p>
+          <button type="button" class="btn btn-tiny" id="btn-fullscreen-hud">Fullscreen</button>
+        </header>
+
+        <div class="stage">
+          <aside class="hud-slot hud-left">
+            <div class="hud-card">
+              <span class="hud-label">Hold</span>
+              <canvas id="hold" class="mini-well" width="96" height="80" aria-label="Hold"></canvas>
+            </div>
+            <button type="button" class="touch-btn touch-hold" data-touch="hold">Hold</button>
+            <div class="hud-card hud-stats">
+              <div class="hud-stat">
+                <span class="hud-label">Score</span>
+                <span id="hud-score" class="hud-value">0</span>
+              </div>
+              <div class="hud-stat-row">
+                <div class="hud-stat">
+                  <span class="hud-label">Level</span>
+                  <span id="hud-level" class="hud-value hud-value-sm">1</span>
+                </div>
+                <div class="hud-stat">
+                  <span class="hud-label">Linien</span>
+                  <span id="hud-lines" class="hud-value hud-value-sm">0</span>
+                </div>
+              </div>
+              <div class="hud-stat-row">
+                <div class="hud-stat">
+                  <span class="hud-label">Combo</span>
+                  <span id="hud-combo" class="hud-value hud-value-sm">—</span>
+                </div>
+                <div class="hud-stat">
+                  <span class="hud-label">B2B</span>
+                  <span id="hud-b2b" class="hud-b2b">off</span>
+                </div>
+              </div>
+              <div class="hud-stat-row">
+                <div class="hud-stat">
+                  <span class="hud-label">Zeit</span>
+                  <span id="hud-time" class="hud-value hud-value-sm">0:00</span>
+                </div>
+                <div class="hud-stat">
+                  <span class="hud-label">PPS</span>
+                  <span id="hud-pps" class="hud-value hud-value-sm">0.0</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <div class="well-wrap">
+            <canvas id="board" width="320" height="640" aria-label="Tetris-Feld"></canvas>
+            <div id="touch-board-layer" class="touch-board-layer" aria-hidden="true"></div>
+            <div id="overlay-pause" class="overlay hidden" role="dialog" aria-labelledby="pause-title">
+              <div class="overlay-card">
+                <h2 id="pause-title">Pause</h2>
+                <div class="overlay-actions">
+                  <button type="button" class="btn btn-primary" id="btn-resume">Resume</button>
+                  <button type="button" class="btn" id="btn-pause-title">Title</button>
+                </div>
+              </div>
+            </div>
+            <div id="overlay" class="overlay hidden" role="dialog" aria-labelledby="overlay-title">
+              <div class="overlay-card">
+                <h2 id="overlay-title">Game Over</h2>
+                <p>Score: <span id="overlay-score">0</span></p>
+                <p>Linien: <span id="overlay-lines">0</span></p>
+                <form id="highscore-form" class="highscore-form hidden">
+                  <label for="highscore-name">Name (3 Zeichen)</label>
+                  <input
+                    id="highscore-name"
+                    name="name"
+                    maxlength="3"
+                    minlength="1"
+                    value="AAA"
+                    autocomplete="off"
+                    spellcheck="false"
+                    aria-label="Highscore-Name"
+                  />
+                  <button type="submit" class="btn">Speichern</button>
+                </form>
+                <h3 class="highscore-heading">Top 10</h3>
+                <ol id="highscore-list" class="highscore-list"></ol>
+                <div class="overlay-actions">
+                  <button type="button" class="btn btn-primary" id="restart">Neu starten</button>
+                  <button type="button" class="btn" id="btn-gameover-title">Title</button>
+                </div>
+                <p class="overlay-hint">oder R drücken</p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="hud-slot hud-right">
+            <div class="hud-card hud-card-next">
+              <span class="hud-label">Next</span>
+              <div class="next-list">
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+                <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div id="touch-pad" class="touch-pad" aria-hidden="true">
+          <button type="button" class="touch-btn" data-touch="left">◀</button>
+          <button type="button" class="touch-btn" data-touch="rotate">↻</button>
+          <button type="button" class="touch-btn" data-touch="right">▶</button>
+          <button type="button" class="touch-btn touch-wide" data-touch="soft">Soft</button>
+          <button type="button" class="touch-btn touch-wide" data-touch="hard">Hard</button>
+        </div>
+
+        <p class="controls">
+          <kbd>←</kbd> <kbd>→</kbd> DAS/ARR ·
+          <kbd>↓</kbd> Soft Drop ·
+          <kbd>↑</kbd> / <kbd>X</kbd> CW ·
+          <kbd>Z</kbd> / <kbd>Strg</kbd> CCW ·
+          <kbd>A</kbd> 180 ·
+          <kbd>Leertaste</kbd> Hard Drop ·
+          <kbd>C</kbd> / <kbd>Shift</kbd> Hold ·
+          <kbd>Esc</kbd> Pause ·
+          <kbd>R</kbd> Neustart
+        </p>
+      </div>
+    </div>
+    </div>
+  </body>
+</html>
