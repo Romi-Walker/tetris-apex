@@ -13,6 +13,8 @@ export type {
   ActivePiece,
   Cell,
   Game,
+  GameEvent,
+  GameEventKind,
   GameOptions,
   GameSnapshot,
   Grid,

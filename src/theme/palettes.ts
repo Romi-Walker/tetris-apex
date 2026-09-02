@@ -1,6 +1,6 @@
 import type { PieceType } from "../engine/types";
 import { rgb, type Rgba } from "./color";
-import { EMPTY_SOUND_SLOTS, THEME_NAMES, type ThemeId } from "./ids";
+import { soundSlotsFor, THEME_NAMES, type ThemeId } from "./ids";
 
 export interface ThemePalette {
   id: ThemeId;
@@ -26,7 +26,7 @@ function make(
   return {
     id,
     name: THEME_NAMES[id],
-    soundSlots: { ...EMPTY_SOUND_SLOTS },
+    soundSlots: soundSlotsFor(id),
     ...spec,
   };
 }
@@ -58,7 +58,7 @@ export const THEME_PALETTES: Record<ThemeId, ThemePalette> = {
     chrome: rgb(8, 36, 58, 0.74),
     chromeBorder: rgb(70, 190, 230, 0.22),
     well: rgb(3, 18, 28),
-    empty: rgb(8, 28, 42),
+    empty: rgb(4, 16, 26),
     gridLine: rgb(120, 210, 255, 0.1),
     ghostAlpha: 0.36,
     text: rgb(230, 244, 252),
@@ -67,7 +67,7 @@ export const THEME_PALETTES: Record<ThemeId, ThemePalette> = {
     pieces: {
       I: rgb(46, 232, 255),
       O: rgb(245, 215, 110),
-      T: rgb(123, 92, 255),
+      T: rgb(210, 168, 255),
       S: rgb(46, 229, 154),
       Z: rgb(255, 90, 122),
       J: rgb(61, 139, 255),

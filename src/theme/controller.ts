@@ -24,6 +24,8 @@ export interface ThemeController {
   observe(snapshot: ThemeObserveInput): void;
   palette(at?: number): ThemePalette;
   fading(at?: number): boolean;
+  reset(): void;
+  setReduceMotion(on: boolean): void;
 }
 
 function pickIndex(length: number, rng: () => number): number {
@@ -66,13 +68,36 @@ export function createThemeController(
   let lastLevel = 1;
   let lastPiecesLocked = 0;
   let piecesSinceLevelUp = 0;
+  let reduceMotion = false;
 
   function beginSwitch(): void {
     const next = pickNextTheme(current, rng);
+    if (reduceMotion) {
+      from = null;
+      current = next;
+      return;
+    }
     from = current;
     current = next;
     fadeStart = nowFn();
     fadeDuration = FADE_MIN_MS + rng() * (FADE_MAX_MS - FADE_MIN_MS);
+  }
+
+  function reset(): void {
+    const previous = current;
+    current = pickNextTheme(previous, rng);
+    from = null;
+    fadeStart = 0;
+    fadeDuration = FADE_MIN_MS;
+    primed = false;
+    lastLevel = 1;
+    lastPiecesLocked = 0;
+    piecesSinceLevelUp = 0;
+  }
+
+  function setReduceMotion(on: boolean): void {
+    reduceMotion = on;
+    if (on) from = null;
   }
 
   function fadeT(at: number): number {
@@ -140,5 +165,7 @@ export function createThemeController(
     observe,
     palette,
     fading,
+    reset,
+    setReduceMotion,
   };
 }

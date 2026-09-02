@@ -39,6 +39,23 @@ export interface ActivePiece {
   cells: Position[];
 }
 
+export type GameEventKind =
+  | "lock"
+  | "move"
+  | "rotate"
+  | "hold"
+  | "lineClear"
+  | "tetris"
+  | "tSpin"
+  | "levelUp"
+  | "gameOver"
+  | "hardDrop";
+
+export interface GameEvent {
+  kind: GameEventKind;
+  lines?: number;
+}
+
 export interface GameSnapshot {
   cols: number;
   rows: number;
@@ -62,6 +79,7 @@ export interface GameSnapshot {
   timeMs: number;
   piecesLocked: number;
   pps: number;
+  events: GameEvent[];
 }
 
 export interface GameOptions {
@@ -79,4 +97,7 @@ export interface GameOptions {
 export interface Game {
   dispatch(action: Action, dt?: number): void;
   getSnapshot(): GameSnapshot;
+  consumeEvents(): GameEvent[];
+  setDasMs(ms: number): void;
+  setArrMs(ms: number): void;
 }

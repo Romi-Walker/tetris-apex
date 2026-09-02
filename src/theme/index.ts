@@ -3,6 +3,8 @@ export {
   THEME_NAMES,
   SOUND_SLOT_IDS,
   EMPTY_SOUND_SLOTS,
+  DEFAULT_SOUND_SLOTS,
+  soundSlotsFor,
   PIECES_WITHOUT_LEVELUP,
   LEVEL_UP_SWITCH_CHANCE,
   FADE_MIN_MS,
@@ -26,3 +28,6 @@ export type {
   ThemeObserveInput,
 } from "./controller";
 export { applyPaletteCss } from "./apply";
+export { relativeLuminance, minLumaDiff, srgbToLinear } from "./contrast";
+export { applyColorblind } from "./colorblind";
+export type { ColorblindMode } from "./colorblind";

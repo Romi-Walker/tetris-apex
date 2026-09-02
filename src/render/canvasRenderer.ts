@@ -1,4 +1,4 @@
-import type { GameSnapshot, Position } from "../engine";
+import type { GameSnapshot, PieceType, Position } from "../engine";
 import { css, mixWhite, type ThemePalette } from "../theme";
 
 const LOCK_FLASH_MS = 120;
@@ -15,8 +15,25 @@ interface Particle {
   color: string;
 }
 
+export interface RenderOptions {
+  ghost?: boolean;
+  grid?: boolean;
+  reduceMotion?: boolean;
+  highContrast?: boolean;
+}
+
+const PIECE_HATCH: Record<PieceType, "diag" | "cross" | "dots" | "h" | "v" | "sparse" | "dense"> = {
+  I: "h",
+  O: "dots",
+  T: "cross",
+  S: "diag",
+  Z: "v",
+  J: "sparse",
+  L: "dense",
+};
+
 export function createRenderer(canvas: HTMLCanvasElement): {
-  draw(snapshot: GameSnapshot, palette: ThemePalette, now: number): void;
+  draw(snapshot: GameSnapshot, palette: ThemePalette, now: number, options?: RenderOptions): void;
 } {
   const maybeCtx = canvas.getContext("2d");
   if (!maybeCtx) {
@@ -65,23 +82,83 @@ export function createRenderer(canvas: HTMLCanvasElement): {
     }
   }
 
-  function draw(snapshot: GameSnapshot, palette: ThemePalette, now: number): void {
+  function hatchCell(
+    px: number,
+    py: number,
+    cw: number,
+    ch: number,
+    type: PieceType,
+  ): void {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(px + 1, py + 1, cw - 2, ch - 2);
+    ctx.clip();
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+    ctx.lineWidth = 1.25;
+    const kind = PIECE_HATCH[type];
+    if (kind === "diag") {
+      ctx.beginPath();
+      for (let i = -ch; i < cw + ch; i += 5) {
+        ctx.moveTo(px + i, py);
+        ctx.lineTo(px + i + ch, py + ch);
+      }
+      ctx.stroke();
+    } else if (kind === "cross") {
+      ctx.beginPath();
+      ctx.moveTo(px + 2, py + 2);
+      ctx.lineTo(px + cw - 2, py + ch - 2);
+      ctx.moveTo(px + cw - 2, py + 2);
+      ctx.lineTo(px + 2, py + ch - 2);
+      ctx.stroke();
+    } else if (kind === "dots") {
+      ctx.fillRect(px + cw * 0.35, py + ch * 0.35, 3, 3);
+      ctx.fillRect(px + cw * 0.6, py + ch * 0.55, 3, 3);
+    } else if (kind === "h") {
+      ctx.beginPath();
+      ctx.moveTo(px + 2, py + ch * 0.5);
+      ctx.lineTo(px + cw - 2, py + ch * 0.5);
+      ctx.stroke();
+    } else if (kind === "v") {
+      ctx.beginPath();
+      ctx.moveTo(px + cw * 0.5, py + 2);
+      ctx.lineTo(px + cw * 0.5, py + ch - 2);
+      ctx.stroke();
+    } else if (kind === "sparse") {
+      ctx.fillRect(px + 4, py + 4, 3, 3);
+    } else {
+      ctx.beginPath();
+      for (let i = 3; i < ch - 2; i += 4) {
+        ctx.moveTo(px + 2, py + i);
+        ctx.lineTo(px + cw - 2, py + i);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function draw(snapshot: GameSnapshot, palette: ThemePalette, now: number, options: RenderOptions = {}): void {
+    const ghostOn = options.ghost !== false;
+    const gridOn = options.grid !== false;
+    const reduce = options.reduceMotion === true;
+    const highContrast = options.highContrast === true;
     const frameDt = lastDrawNow === 0 ? 16 : Math.min(50, Math.max(0, now - lastDrawNow));
     lastDrawNow = now;
 
     if (prev && snapshot.piecesLocked > prev.piecesLocked) {
-      if (prev.active) {
+      if (prev.active && !reduce) {
         flashCells = prev.active.cells.slice();
         flashUntil = now + LOCK_FLASH_MS;
       }
       if (snapshot.lastClearCount > 0) {
         dissolveRows = snapshot.lastClearedRows.slice();
-        dissolveUntil = now + DISSOLVE_MS;
-        spawnParticles(snapshot, palette);
+        dissolveUntil = now + (reduce ? 16 : DISSOLVE_MS);
+        if (!reduce) spawnParticles(snapshot, palette);
       }
     }
 
-    stepParticles(frameDt);
+    if (!reduce) stepParticles(frameDt);
+    else particles.length = 0;
 
     const visibleRows = snapshot.rows - snapshot.visibleStartRow;
     const cellW = canvas.width / snapshot.cols;
@@ -112,10 +189,11 @@ export function createRenderer(canvas: HTMLCanvasElement): {
         }
         ctx.fillStyle = css(fill);
         ctx.fillRect(px + 1, py + 1, cellW - 2, cellH - 2);
+        if (highContrast) hatchCell(px, py, cellW, cellH, cell);
       }
     }
 
-    if (snapshot.active && snapshot.ghost.length > 0) {
+    if (ghostOn && snapshot.active && snapshot.ghost.length > 0) {
       const color = css(palette.pieces[snapshot.active.type]);
       ctx.save();
       ctx.globalAlpha = palette.ghostAlpha;
@@ -143,7 +221,10 @@ export function createRenderer(canvas: HTMLCanvasElement): {
       for (const cell of snapshot.active.cells) {
         if (cell.y < snapshot.visibleStartRow) continue;
         const vy = cell.y - snapshot.visibleStartRow;
-        ctx.fillRect(cell.x * cellW + 1, vy * cellH + 1, cellW - 2, cellH - 2);
+        const px = cell.x * cellW;
+        const py = vy * cellH;
+        ctx.fillRect(px + 1, py + 1, cellW - 2, cellH - 2);
+        if (highContrast) hatchCell(px, py, cellW, cellH, snapshot.active.type);
       }
     }
 
@@ -159,20 +240,22 @@ export function createRenderer(canvas: HTMLCanvasElement): {
       ctx.globalAlpha = 1;
     }
 
-    ctx.strokeStyle = css(palette.gridLine);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let x = 0; x <= snapshot.cols; x++) {
-      const px = x * cellW;
-      ctx.moveTo(px, 0);
-      ctx.lineTo(px, canvas.height);
+    if (gridOn) {
+      ctx.strokeStyle = css(palette.gridLine);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x <= snapshot.cols; x++) {
+        const px = x * cellW;
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, canvas.height);
+      }
+      for (let y = 0; y <= visibleRows; y++) {
+        const py = y * cellH;
+        ctx.moveTo(0, py);
+        ctx.lineTo(canvas.width, py);
+      }
+      ctx.stroke();
     }
-    for (let y = 0; y <= visibleRows; y++) {
-      const py = y * cellH;
-      ctx.moveTo(0, py);
-      ctx.lineTo(canvas.width, py);
-    }
-    ctx.stroke();
 
     for (const p of particles) {
       const vy = p.y - snapshot.visibleStartRow;
