@@ -9,14 +9,18 @@
     <div class="app">
       <header class="chrome">
         <h1>Tetris Apex</h1>
-        <p class="tagline">Phase 0+1 — Kernloop</p>
+        <p class="tagline">Phase 2 — SRS, Hold, Next, Ghost, DAS/ARR</p>
       </header>
 
       <div class="stage">
-        <aside class="hud-slot" aria-hidden="true">
+        <aside class="hud-slot hud-left">
           <div class="hud-card">
             <span class="hud-label">Hold</span>
-            <span class="hud-soon">bald</span>
+            <canvas id="hold" class="mini-well" width="96" height="80" aria-label="Hold"></canvas>
+          </div>
+          <div class="hud-card hud-card-compact">
+            <span class="hud-label">Linien</span>
+            <span id="hud-lines" class="hud-value">0</span>
           </div>
         </aside>
 
@@ -32,23 +36,28 @@
           </div>
         </div>
 
-        <aside class="hud-slot">
-          <div class="hud-card">
-            <span class="hud-label">Linien</span>
-            <span id="hud-lines" class="hud-value">0</span>
-          </div>
-          <div class="hud-card">
+        <aside class="hud-slot hud-right">
+          <div class="hud-card hud-card-next">
             <span class="hud-label">Next</span>
-            <span class="hud-soon">bald</span>
+            <div class="next-list">
+              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+              <canvas class="mini-well next-piece" width="96" height="56" aria-hidden="true"></canvas>
+            </div>
           </div>
         </aside>
       </div>
 
       <p class="controls">
-        <kbd>←</kbd> <kbd>→</kbd> bewegen ·
-        <kbd>↑</kbd> / <kbd>X</kbd> drehen ·
+        <kbd>←</kbd> <kbd>→</kbd> DAS/ARR ·
         <kbd>↓</kbd> Soft Drop ·
+        <kbd>↑</kbd> / <kbd>X</kbd> CW ·
+        <kbd>Z</kbd> / <kbd>Ctrl</kbd> CCW ·
+        <kbd>A</kbd> 180 ·
         <kbd>Leertaste</kbd> Hard Drop ·
+        <kbd>C</kbd> / <kbd>Shift</kbd> Hold ·
         <kbd>R</kbd> Neustart
       </p>
     </div>

@@ -5,7 +5,6 @@ export function createOverlay(root: HTMLElement, onRestart: () => void): {
 } {
   const overlay = root.querySelector<HTMLElement>("#overlay");
   const linesEl = root.querySelector<HTMLElement>("#overlay-lines");
-  const hudLines = root.querySelector<HTMLElement>("#hud-lines");
   const restartBtn = root.querySelector<HTMLButtonElement>("#restart");
 
   restartBtn?.addEventListener("click", () => {
@@ -13,9 +12,6 @@ export function createOverlay(root: HTMLElement, onRestart: () => void): {
   });
 
   function update(snapshot: GameSnapshot): void {
-    if (hudLines) {
-      hudLines.textContent = String(snapshot.linesClearedTotal);
-    }
     if (!overlay) return;
     if (snapshot.gameOver) {
       overlay.classList.remove("hidden");

@@ -1,18 +1,5 @@
-import type { GameSnapshot, PieceType } from "../engine";
-
-const COLORS: Record<PieceType, string> = {
-  I: "#00d5d8",
-  O: "#e0c040",
-  T: "#b44ae0",
-  S: "#3cc85a",
-  Z: "#e04545",
-  J: "#3a6bdc",
-  L: "#e08930",
-};
-
-const EMPTY = "#12141a";
-const GRID_LINE = "rgba(255, 255, 255, 0.06)";
-const WELL_BG = "#0b0c10";
+import type { GameSnapshot } from "../engine";
+import { EMPTY, GRID_LINE, PIECE_COLORS, WELL_BG } from "./colors";
 
 export function createRenderer(canvas: HTMLCanvasElement): {
   draw(snapshot: GameSnapshot): void;
@@ -38,13 +25,35 @@ export function createRenderer(canvas: HTMLCanvasElement): {
         const px = x * cellW;
         const py = vy * cellH;
         const cell = row ? row[x] ?? null : null;
-        ctx.fillStyle = cell ? COLORS[cell] : EMPTY;
+        ctx.fillStyle = cell ? PIECE_COLORS[cell] : EMPTY;
         ctx.fillRect(px + 1, py + 1, cellW - 2, cellH - 2);
       }
     }
 
+    if (snapshot.active && snapshot.ghost.length > 0) {
+      const color = PIECE_COLORS[snapshot.active.type];
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = color;
+      for (const cell of snapshot.ghost) {
+        if (cell.y < snapshot.visibleStartRow) continue;
+        const vy = cell.y - snapshot.visibleStartRow;
+        ctx.fillRect(cell.x * cellW + 1, vy * cellH + 1, cellW - 2, cellH - 2);
+      }
+      ctx.restore();
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 1.5;
+      for (const cell of snapshot.ghost) {
+        if (cell.y < snapshot.visibleStartRow) continue;
+        const vy = cell.y - snapshot.visibleStartRow;
+        ctx.strokeRect(cell.x * cellW + 2, vy * cellH + 2, cellW - 4, cellH - 4);
+      }
+      ctx.globalAlpha = 1;
+    }
+
     if (snapshot.active) {
-      ctx.fillStyle = COLORS[snapshot.active.type];
+      ctx.fillStyle = PIECE_COLORS[snapshot.active.type];
       for (const cell of snapshot.active.cells) {
         if (cell.y < snapshot.visibleStartRow) continue;
         const vy = cell.y - snapshot.visibleStartRow;
