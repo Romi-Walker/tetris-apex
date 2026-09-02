@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   THEME_IDS,
   createThemeController,
+  minLumaDiff,
+  paletteOf,
   pickNextTheme,
   rollLevelUpSwitch,
 } from "../src/theme";
@@ -73,5 +75,28 @@ describe("level-up switch chance", () => {
     expect(ctrl.currentId()).toBe(start);
     ctrl.observe({ level: 2, piecesLocked: 45 });
     expect(ctrl.currentId()).not.toBe(start);
+  });
+});
+
+describe("theme reset", () => {
+  it("reset() changes id and is not equal to previous", () => {
+    const rolls = [0, 0.5, 0.9, 0.2, 0.7, 0.1];
+    let i = 0;
+    const rng = () => rolls[i++] ?? 0;
+    const ctrl = createThemeController({ rng, now: () => 0 });
+    const first = ctrl.currentId();
+    ctrl.reset();
+    const second = ctrl.currentId();
+    expect(second).not.toBe(first);
+    ctrl.reset();
+    const third = ctrl.currentId();
+    expect(third).not.toBe(second);
+  });
+});
+
+describe("deep ocean contrast", () => {
+  it("T vs empty exceeds 0.25 relative luminance", () => {
+    const p = paletteOf("deep-ocean");
+    expect(minLumaDiff(p.pieces.T, p.empty)).toBeGreaterThan(0.25);
   });
 });

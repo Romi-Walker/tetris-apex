@@ -512,3 +512,43 @@ describe("combo in game", () => {
     expect(secondGain).toBe(188);
   });
 });
+
+describe("consumeEvents", () => {
+  it("locking a piece emits lock", () => {
+    const game = createGame({ bag: ["O", "T"], gravityMs: 1e9 });
+    game.consumeEvents();
+    game.dispatch("hard");
+    const events = game.consumeEvents();
+    expect(events.some((e) => e.kind === "lock")).toBe(true);
+    expect(events.some((e) => e.kind === "hardDrop")).toBe(true);
+    expect(game.getSnapshot().events).toEqual([]);
+  });
+
+  it("tetris emits tetris", () => {
+    const grid = emptyGrid();
+    for (let y = 18; y <= 21; y++) {
+      for (let x = 0; x < 10; x++) {
+        if (x !== 5) grid[y]![x] = "Z";
+      }
+    }
+    const game = createGame({ bag: ["I", "O"], grid, gravityMs: 1e9 });
+    game.consumeEvents();
+    game.dispatch("cw");
+    game.dispatch("hard");
+    const events = game.consumeEvents();
+    expect(game.getSnapshot().lastClearCount).toBe(4);
+    expect(events.some((e) => e.kind === "tetris")).toBe(true);
+    expect(events.some((e) => e.kind === "lineClear" && e.lines === 4)).toBe(true);
+    expect(events.some((e) => e.kind === "lock")).toBe(true);
+  });
+
+  it("hold emits hold", () => {
+    const game = createGame({ bag: ["T", "I", "O"] });
+    game.consumeEvents();
+    game.dispatch("hold");
+    const events = game.consumeEvents();
+    expect(events.some((e) => e.kind === "hold")).toBe(true);
+    game.dispatch("hold");
+    expect(game.consumeEvents().some((e) => e.kind === "hold")).toBe(false);
+  });
+});

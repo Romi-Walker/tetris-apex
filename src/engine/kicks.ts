@@ -6,7 +6,7 @@ type Kick = readonly [number, number];
  * Tetris Guideline SRS wall-kicks, stored in engine space (x right, y down).
  * Published tables use +y up; conversion is engineKick = (kx, -ky).
  *
- * 180° uses the documented TETR.IO / SRS+ table (same y conversion).
+ * 180° uses the TETR.IO / SRS+ table (same y conversion).
  */
 function fromGuidelineYUp(kicks: Kick[]): Kick[] {
   return kicks.map(([kx, ky]) => [kx, -ky] as const);

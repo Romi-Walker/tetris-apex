@@ -28,9 +28,9 @@
 - Highscore Top 10 in `src/ui/highscore.ts` (localStorage, nicht Engine); Game-Over Name (3 Zeichen) + Liste
 - Engine bleibt DOM-frei
 
-## Phase 4 — complete
+## Phase 4 — complete (merged in PR #4)
 
-Design/Themes und Screens. Keine Audio-Samples, kein Touch, keine Colorblind-Modi (Phase 5).
+Design/Themes und Screens.
 
 Themes (Namen exakt):
 
@@ -49,8 +49,22 @@ Screen-Keys: `title`, `play`, `pause`, `gameover`, `settings`, `howto`, `highsco
 - Paletten nur ueber CSS-Variablen und Canvas; Themes aendern keine Gameplay-Regeln
 - Visual FX im Renderer: Lock-Flash, Line-Dissolve (`lastClearedRows` im Snapshot), Particles
 - Score 0 qualifiziert nicht fuer Highscore; Combo-HUD ab Combo 2
-- Sound-Slot-IDs als leere Platzhalter, keine Samples/Musik
 
-## Phase 5 — not started
+## Phase 5 — complete
 
-Audio, Touch, Accessibility (Colorblind, Reduce Motion als Option).
+Audio, Settings, Touch, Accessibility. Kein Multiplayer, Shop, Accounts.
+
+- Procedural Web-Audio only (`src/audio/`): Oscillatoren + Noise, keine MP3/OGG, keine Korobeiniki/Nintendo/Third-Party-Samples
+- SFX aus Engine-Events (`consumeEvents()`): lock, move, rotate, hold, lineClear, tetris, tSpin, levelUp, gameOver, hardDrop
+- Theme-Musik: looping procedural bed (Root/Tempo/Filter je Theme), Crossfade/Retarget, Ducking ~300ms bei Line-Clear/Tetris/T-Spin
+- Mute + Master/SFX/Music 0–100; AudioContext Unlock beim ersten Gesture (Play / Taste)
+- Settings `localStorage` Key `tetris-apex-settings`: Volumes, Mute, DAS/ARR (live Setter), Ghost, Grid, Remap (`KeyboardEvent.code`), Colorblind, Reduce Motion
+- How-to-Play: 4 skippable Karten (Ziel, Steuern, Hold/Next, Score-Basics); First-Run Overlay blockiert Play nicht
+- Fullscreen (Settings + HUD), Touch-Zonen (Portrait), Reduce Motion (kein Crossfade/Particles/Lock-Flash; Dissolve 1 Frame)
+- Colorblind: off | deuteranopia | protanopia | high-contrast (Palette-Transform, T vs empty bleibt distinct)
+- `theme.reset()` würfelt ein neues Theme ≠ previous (Title→Play, Overlay-Restart, Game-Over R)
+- Engine bleibt DOM-frei (kein document/window/localStorage/AudioContext/canvas)
+
+## Phase 6 — not started
+
+QA / Release.

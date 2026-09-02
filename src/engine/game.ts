@@ -21,6 +21,7 @@ import {
   type Action,
   type ActivePiece,
   type Game,
+  type GameEvent,
   type GameOptions,
   type GameSnapshot,
   type Grid,
@@ -74,13 +75,23 @@ interface InternalState {
 
 export function createGame(options: GameOptions = {}): Game {
   const softDropMs = options.softDropMs ?? DEFAULT_SOFT_DROP_MS;
-  const dasMs = options.dasMs ?? DEFAULT_DAS_MS;
-  const arrMs = options.arrMs ?? DEFAULT_ARR_MS;
+  let dasMs = options.dasMs ?? DEFAULT_DAS_MS;
+  let arrMs = options.arrMs ?? DEFAULT_ARR_MS;
   const lockResetMax = options.lockResetMax ?? DEFAULT_LOCK_RESET_MAX;
   const randomizer = createBagRandomizer(options.bag, options.seed);
   const initialGrid = options.grid ? cloneGrid(options.grid) : emptyGrid();
 
+  let pendingEvents: GameEvent[] = [];
   let state: InternalState = boot();
+
+  function clampMs(value: number, fallback: number, min: number, max: number): number {
+    if (!Number.isFinite(value)) return fallback;
+    return Math.max(min, Math.min(max, Math.round(value)));
+  }
+
+  function emit(kind: GameEvent["kind"], extra: Omit<GameEvent, "kind"> = {}): void {
+    pendingEvents.push({ kind, ...extra });
+  }
 
   function currentLevel(s: InternalState = state): number {
     return levelFromLines(s.linesClearedTotal);
@@ -179,6 +190,7 @@ export function createGame(options: GameOptions = {}): Game {
     s.gravityElapsed = 0;
     if (collides(s.grid, piece.type, piece.x, piece.y, piece.rotation)) {
       s.gameOver = true;
+      emit("gameOver");
       return;
     }
     applyInfiniteGravity(s);
@@ -226,7 +238,10 @@ export function createGame(options: GameOptions = {}): Game {
     piece.x = nx;
     piece.y = ny;
     if (dy > 0) piece.lastAction = "drop";
-    else if (dx !== 0) piece.lastAction = "move";
+    else if (dx !== 0) {
+      piece.lastAction = "move";
+      if (target === state) emit("move");
+    }
     if (resetLock) {
       onShiftOrRotate();
     } else if (s.locking && !grounded(s, piece)) {
@@ -257,6 +272,7 @@ export function createGame(options: GameOptions = {}): Game {
         piece.lastKickIndex = i;
         piece.usedKick = i > 0;
         onShiftOrRotate();
+        emit("rotate");
         return true;
       }
     }
@@ -267,6 +283,7 @@ export function createGame(options: GameOptions = {}): Game {
     const s = state;
     const piece = s.active;
     if (!piece) return;
+    const levelBefore = currentLevel(s);
     lockPiece(s.grid, piece.type, piece.x, piece.y, piece.rotation);
     const corners =
       piece.type === "T" && piece.lastAction === "rotate"
@@ -301,6 +318,11 @@ export function createGame(options: GameOptions = {}): Game {
     s.lockResets = 0;
     s.gravityElapsed = 0;
     s.canHold = true;
+    emit("lock");
+    if (cleared > 0) emit("lineClear", { lines: cleared });
+    if (cleared >= 4) emit("tetris");
+    if (tSpin !== "none") emit("tSpin");
+    if (currentLevel(s) > levelBefore) emit("levelUp");
     if (!s.gameOver) {
       spawn(s);
     }
@@ -328,6 +350,7 @@ export function createGame(options: GameOptions = {}): Game {
       cells += 1;
     }
     s.score += dropPoints(cells, "hard");
+    emit("hardDrop");
     lockActive();
   }
 
@@ -337,6 +360,7 @@ export function createGame(options: GameOptions = {}): Game {
     const current = s.active.type;
     s.canHold = false;
     s.softHeld = false;
+    emit("hold");
     if (s.hold === null) {
       s.hold = current;
       spawn(s);
@@ -479,6 +503,7 @@ export function createGame(options: GameOptions = {}): Game {
   function dispatch(action: Action, dt = 0): void {
     if (action === "restart") {
       randomizer.reset();
+      pendingEvents = [];
       state = boot();
       return;
     }
@@ -557,8 +582,23 @@ export function createGame(options: GameOptions = {}): Game {
       timeMs: s.timeMs,
       piecesLocked: s.piecesLocked,
       pps: piecesPerSecond(s.piecesLocked, s.timeMs),
+      events: pendingEvents.slice(),
     };
   }
 
-  return { dispatch, getSnapshot };
+  function consumeEvents(): GameEvent[] {
+    const out = pendingEvents;
+    pendingEvents = [];
+    return out;
+  }
+
+  function setDasMs(ms: number): void {
+    dasMs = clampMs(ms, DEFAULT_DAS_MS, 0, 1000);
+  }
+
+  function setArrMs(ms: number): void {
+    arrMs = clampMs(ms, DEFAULT_ARR_MS, 0, 500);
+  }
+
+  return { dispatch, getSnapshot, consumeEvents, setDasMs, setArrMs };
 }

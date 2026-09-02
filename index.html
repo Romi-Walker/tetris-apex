@@ -6,10 +6,11 @@
     <title>Tetris Apex</title>
   </head>
   <body>
+    <div id="app-root">
     <div id="screen-title" class="screen">
       <div class="menu-card">
         <h1>Tetris Apex</h1>
-        <p class="tagline">Phase 4 — Themes</p>
+        <p class="tagline">Phase 5 — Audio, Settings, Touch</p>
         <div class="menu-actions">
           <button type="button" class="btn btn-primary" id="btn-play">Play</button>
           <button type="button" class="btn" id="btn-howto">How to Play</button>
@@ -20,60 +21,96 @@
       </div>
     </div>
 
+    <div id="first-run" class="first-run hidden" role="dialog" aria-labelledby="first-run-title">
+      <div class="menu-card">
+        <p class="howto-kicker">How to Play</p>
+        <h1 id="first-run-title">Ziel</h1>
+        <p id="first-run-body" class="howto-body"></p>
+        <div class="howto-actions">
+          <button type="button" class="btn" id="btn-first-skip">Skip</button>
+          <button type="button" class="btn" id="btn-first-next">Weiter</button>
+          <button type="button" class="btn hidden" id="btn-first-done">Fertig</button>
+          <button type="button" class="btn btn-primary" id="btn-first-play">Play</button>
+        </div>
+      </div>
+    </div>
+
     <div id="screen-howto" class="screen hidden">
       <div class="menu-card menu-card-wide">
-        <h1>How to Play</h1>
-        <h2 class="section-title">Steuerung</h2>
-        <ul class="howto-list">
-          <li><kbd>←</kbd> <kbd>→</kbd> bewegen (DAS/ARR)</li>
-          <li><kbd>↓</kbd> Soft Drop</li>
-          <li><kbd>↑</kbd> / <kbd>X</kbd> drehen (CW, SRS)</li>
-          <li><kbd>Z</kbd> / <kbd>Strg</kbd> gegen den Uhrzeigersinn</li>
-          <li><kbd>A</kbd> 180°-Drehung</li>
-          <li><kbd>Leertaste</kbd> Hard Drop</li>
-          <li><kbd>C</kbd> / <kbd>Shift</kbd> Hold</li>
-          <li><kbd>Esc</kbd> Pause / Weiter</li>
-          <li><kbd>R</kbd> Neustart (im Spiel)</li>
-          <li><kbd>Enter</kbd> Play vom Titel</li>
-        </ul>
-        <h2 class="section-title">Punkte (× Level, außer Drops)</h2>
-        <ul class="howto-list">
-          <li>Single 100 · Double 300 · Triple 500 · Tetris 800</li>
-          <li>T-Spin Mini 100 · T-Spin 400 · Double 700 · Triple 1100</li>
-          <li>Back-to-Back ×1.5 (Tetris und T-Spin mit Linien)</li>
-          <li>Combo 50 × Combo × Level</li>
-          <li>Perfect Clear 800 / 1200 / 1800 / 2000</li>
-          <li>Soft Drop +1/Zelle · Hard Drop +2/Zelle</li>
-        </ul>
-        <button type="button" class="btn" id="btn-howto-back">Back</button>
+        <p class="howto-kicker">How to Play</p>
+        <h1 id="howto-title">Ziel</h1>
+        <p id="howto-body" class="howto-body"></p>
+        <div class="howto-actions">
+          <button type="button" class="btn" id="btn-howto-skip">Skip</button>
+          <button type="button" class="btn" id="btn-howto-next">Weiter</button>
+          <button type="button" class="btn hidden" id="btn-howto-done">Fertig</button>
+        </div>
+        <button type="button" class="btn btn-ghost" id="btn-howto-back">Back</button>
       </div>
     </div>
 
     <div id="screen-settings" class="screen hidden">
-      <div class="menu-card">
+      <div class="menu-card menu-card-wide">
         <h1>Settings</h1>
-        <p class="tagline">Platzhalter — kommt in Phase 5</p>
-        <form class="settings-form" onsubmit="return false">
+        <form class="settings-form" id="settings-form" onsubmit="return false">
           <label class="settings-row">
-            <span>Lautstärke</span>
-            <input type="range" min="0" max="100" value="70" disabled />
-            <span class="phase5-note">kommt in Phase 5</span>
+            <span>Master</span>
+            <input type="range" id="set-master" min="0" max="100" value="70" />
           </label>
           <label class="settings-row">
-            <span>DAS</span>
-            <input type="number" value="133" disabled />
-            <span class="phase5-note">kommt in Phase 5</span>
+            <span>SFX</span>
+            <input type="range" id="set-sfx" min="0" max="100" value="80" />
           </label>
           <label class="settings-row">
-            <span>ARR</span>
-            <input type="number" value="33" disabled />
-            <span class="phase5-note">kommt in Phase 5</span>
+            <span>Musik</span>
+            <input type="range" id="set-music" min="0" max="100" value="55" />
+          </label>
+          <label class="settings-row settings-row-check">
+            <span>Mute</span>
+            <input type="checkbox" id="set-mute" />
           </label>
           <label class="settings-row">
+            <span>DAS ms</span>
+            <input type="number" id="set-das" min="0" max="1000" value="133" />
+          </label>
+          <label class="settings-row">
+            <span>ARR ms</span>
+            <input type="number" id="set-arr" min="0" max="500" value="33" />
+          </label>
+          <label class="settings-row settings-row-check">
             <span>Ghost</span>
-            <input type="checkbox" checked disabled />
-            <span class="phase5-note">kommt in Phase 5</span>
+            <input type="checkbox" id="set-ghost" checked />
           </label>
+          <label class="settings-row settings-row-check">
+            <span>Grid</span>
+            <input type="checkbox" id="set-grid" checked />
+          </label>
+          <label class="settings-row">
+            <span>Colorblind</span>
+            <select id="set-colorblind">
+              <option value="off">Off</option>
+              <option value="deuteranopia">Deuteranopia</option>
+              <option value="protanopia">Protanopia</option>
+              <option value="high-contrast">High-contrast</option>
+            </select>
+          </label>
+          <label class="settings-row settings-row-check">
+            <span>Reduce Motion</span>
+            <input type="checkbox" id="set-reduce" />
+          </label>
+          <h2 class="section-title">Steuerung</h2>
+          <div id="set-remap" class="remap-grid">
+            <label>Links <button type="button" class="btn remap-btn" data-remap="left">ArrowLeft</button></label>
+            <label>Rechts <button type="button" class="btn remap-btn" data-remap="right">ArrowRight</button></label>
+            <label>Soft <button type="button" class="btn remap-btn" data-remap="soft">ArrowDown</button></label>
+            <label>Hard <button type="button" class="btn remap-btn" data-remap="hard">Space</button></label>
+            <label>CW <button type="button" class="btn remap-btn" data-remap="cw">ArrowUp</button></label>
+            <label>CCW <button type="button" class="btn remap-btn" data-remap="ccw">KeyZ</button></label>
+            <label>180 <button type="button" class="btn remap-btn" data-remap="flip">KeyA</button></label>
+            <label>Hold <button type="button" class="btn remap-btn" data-remap="hold">KeyC</button></label>
+            <label>Pause <button type="button" class="btn remap-btn" data-remap="pause">Escape</button></label>
+          </div>
+          <button type="button" class="btn" id="btn-fullscreen">Fullscreen</button>
         </form>
         <button type="button" class="btn" id="btn-settings-back">Back</button>
       </div>
@@ -91,7 +128,8 @@
       <div class="app">
         <header class="chrome">
           <h1>Tetris Apex</h1>
-          <p class="tagline">Phase 4 — Themes</p>
+          <p class="tagline">Phase 5 — Audio, Settings, Touch</p>
+          <button type="button" class="btn btn-tiny" id="btn-fullscreen-hud">Fullscreen</button>
         </header>
 
         <div class="stage">
@@ -100,6 +138,7 @@
               <span class="hud-label">Hold</span>
               <canvas id="hold" class="mini-well" width="96" height="80" aria-label="Hold"></canvas>
             </div>
+            <button type="button" class="touch-btn touch-hold" data-touch="hold">Hold</button>
             <div class="hud-card hud-stats">
               <div class="hud-stat">
                 <span class="hud-label">Score</span>
@@ -140,6 +179,7 @@
 
           <div class="well-wrap">
             <canvas id="board" width="320" height="640" aria-label="Tetris-Feld"></canvas>
+            <div id="touch-board-layer" class="touch-board-layer" aria-hidden="true"></div>
             <div id="overlay-pause" class="overlay hidden" role="dialog" aria-labelledby="pause-title">
               <div class="overlay-card">
                 <h2 id="pause-title">Pause</h2>
@@ -193,6 +233,14 @@
           </aside>
         </div>
 
+        <div id="touch-pad" class="touch-pad" aria-hidden="true">
+          <button type="button" class="touch-btn" data-touch="left">◀</button>
+          <button type="button" class="touch-btn" data-touch="rotate">↻</button>
+          <button type="button" class="touch-btn" data-touch="right">▶</button>
+          <button type="button" class="touch-btn touch-wide" data-touch="soft">Soft</button>
+          <button type="button" class="touch-btn touch-wide" data-touch="hard">Hard</button>
+        </div>
+
         <p class="controls">
           <kbd>←</kbd> <kbd>→</kbd> DAS/ARR ·
           <kbd>↓</kbd> Soft Drop ·
@@ -205,6 +253,7 @@
           <kbd>R</kbd> Neustart
         </p>
       </div>
+    </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
