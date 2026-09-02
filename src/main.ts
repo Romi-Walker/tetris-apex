@@ -164,6 +164,7 @@ function frame(now: number): void {
   last = now;
   const screen = screens.get();
   const s = currentSettings();
+  // Lock-flash / dissolve / particles are renderer-only; never pause tick or input.
   if (screen === "play") {
     game.dispatch("tick", dt);
   }

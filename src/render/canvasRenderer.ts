@@ -3,6 +3,7 @@ import { css, mixWhite, type ThemePalette } from "../theme";
 
 const LOCK_FLASH_MS = 120;
 const DISSOLVE_MS = 200;
+const MAX_PARTICLES = 80;
 
 interface Particle {
   x: number;
@@ -57,6 +58,7 @@ export function createRenderer(canvas: HTMLCanvasElement): {
     const accent = css(palette.accent);
     const lite = css(mixWhite(palette.accent, 0.45));
     for (let i = 0; i < count; i++) {
+      if (particles.length >= MAX_PARTICLES) break;
       const row = rows[i % rows.length]!;
       const life = 280 + Math.random() * 160;
       particles.push({

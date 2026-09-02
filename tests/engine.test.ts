@@ -552,3 +552,41 @@ describe("consumeEvents", () => {
     expect(game.consumeEvents().some((e) => e.kind === "hold")).toBe(false);
   });
 });
+
+describe("setDasMs / setArrMs", () => {
+  it("setDasMs(50) uses 50ms DAS delay", () => {
+    const game = createGame({
+      bag: ["T", "I"],
+      gravityMs: 1e9,
+      dasMs: 133,
+      arrMs: 33,
+    });
+    game.setDasMs(50);
+    const x0 = game.getSnapshot().active!.x;
+    game.dispatch("leftDown");
+    expect(game.getSnapshot().active?.x).toBe(x0 - 1);
+    game.dispatch("tick", 49);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 1);
+    game.dispatch("tick", 1);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 2);
+  });
+
+  it("setArrMs(20) uses 20ms ARR after DAS", () => {
+    const game = createGame({
+      bag: ["T", "I"],
+      gravityMs: 1e9,
+      dasMs: 50,
+      arrMs: 33,
+    });
+    game.setArrMs(20);
+    const x0 = game.getSnapshot().active!.x;
+    game.dispatch("leftDown");
+    expect(game.getSnapshot().active?.x).toBe(x0 - 1);
+    game.dispatch("tick", 50);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 2);
+    game.dispatch("tick", 19);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 2);
+    game.dispatch("tick", 1);
+    expect(game.getSnapshot().active?.x).toBe(x0 - 3);
+  });
+});

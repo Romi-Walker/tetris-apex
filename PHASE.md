@@ -65,6 +65,12 @@ Audio, Settings, Touch, Accessibility. Kein Multiplayer, Shop, Accounts.
 - `theme.reset()` würfelt ein neues Theme ≠ previous (Title→Play, Overlay-Restart, Game-Over R)
 - Engine bleibt DOM-frei (kein document/window/localStorage/AudioContext/canvas)
 
-## Phase 6 — not started
+## Phase 6 — complete
 
-QA / Release.
+QA / Release. README commands, extra tests, GitHub Pages.
+
+- README Setup with the four package scripts; Steuerung unchanged
+- Extra tests: broken Settings JSON, DAS/ARR setters, Colorblind, Reduce Motion
+- Pages: vite `base: "/tetris-apex/"`, workflow `.github/workflows/pages.yml`
+- FX renderer-only (tick/input never pause); particle cap
+- v1 overall check is Susi's job after this PR
