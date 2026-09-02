@@ -1,6 +1,6 @@
 # Tetris Apex
 
-Hochwertiges Browser-Tetris. Phase 5: Audio, Settings, Touch, Accessibility.
+Hochwertiges Browser-Tetris. Phase 6 complete: README, Tests, GitHub Pages.
 
 Gameplay-Logik lebt in `src/engine/` (reines TypeScript, kein DOM). Canvas malt nur ein Snapshot; Tastatur, Touch und HTML-Overlays sind getrennt. Themes liegen in `src/theme/`. Highscores und Settings liegen in `src/ui/` (localStorage). Audio liegt in `src/audio/` und ist komplett prozedural.
 
@@ -44,7 +44,14 @@ Zonen ums Board: Links, Rechts, Rotate (Tap), Soft (halten), Hard (Swipe runter 
 
 ## Setup
 
-Install dependencies, run tests, then start the Vite dev server. Production uses the TypeScript check plus Vite build.
+```
+npm install
+npm test
+npm run dev
+npm run build
+```
+
+GitHub Pages: https://romi-walker.github.io/tetris-apex/
 
 ## Steuerung
 

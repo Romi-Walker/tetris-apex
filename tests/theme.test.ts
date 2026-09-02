@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   THEME_IDS,
+  applyColorblind,
   createThemeController,
   minLumaDiff,
   paletteOf,
@@ -98,5 +99,48 @@ describe("deep ocean contrast", () => {
   it("T vs empty exceeds 0.25 relative luminance", () => {
     const p = paletteOf("deep-ocean");
     expect(minLumaDiff(p.pieces.T, p.empty)).toBeGreaterThan(0.25);
+  });
+});
+
+describe("applyColorblind", () => {
+  it("changes pieces for deuteranopia, protanopia, and high-contrast; off is same reference", () => {
+    const palette = paletteOf("neon-city");
+    const off = applyColorblind(palette, "off");
+    expect(off).toBe(palette);
+    expect(off.pieces).toEqual(palette.pieces);
+
+    const deut = applyColorblind(palette, "deuteranopia");
+    const prot = applyColorblind(palette, "protanopia");
+    const hc = applyColorblind(palette, "high-contrast");
+    expect(deut.pieces).not.toEqual(palette.pieces);
+    expect(prot.pieces).not.toEqual(palette.pieces);
+    expect(hc.pieces).not.toEqual(palette.pieces);
+    expect(deut.pieces).not.toEqual(prot.pieces);
+    expect(deut.pieces.I).not.toEqual(palette.pieces.I);
+    expect(prot.pieces.Z).not.toEqual(palette.pieces.Z);
+    expect(hc.pieces.T).not.toEqual(palette.pieces.T);
+
+    const empty = hc.empty;
+    expect(empty.r + empty.g + empty.b).toBeLessThan(40);
+    expect(empty.r).toBeLessThanOrEqual(16);
+    expect(empty.g).toBeLessThanOrEqual(16);
+    expect(empty.b).toBeLessThanOrEqual(16);
+  });
+});
+
+describe("reduce motion", () => {
+  it("setReduceMotion skips fade after a forced theme switch", () => {
+    const withFade = createThemeController({ rng: () => 0, now: () => 0 });
+    withFade.observe({ level: 1, piecesLocked: 0 });
+    withFade.observe({ level: 1, piecesLocked: 40 });
+    expect(withFade.fading(0)).toBe(true);
+
+    const reduced = createThemeController({ rng: () => 0, now: () => 0 });
+    reduced.setReduceMotion(true);
+    reduced.observe({ level: 1, piecesLocked: 0 });
+    reduced.observe({ level: 1, piecesLocked: 40 });
+    expect(reduced.fading(0)).toBe(false);
+    const start = createThemeController({ rng: () => 0, now: () => 0 }).currentId();
+    expect(reduced.currentId()).not.toBe(start);
   });
 });

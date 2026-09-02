@@ -132,7 +132,11 @@ export function loadSettings(storage: SettingsStorage): GameSettings {
   try {
     const raw = storage.getItem(SETTINGS_KEY);
     if (!raw) return { ...DEFAULT_SETTINGS, remap: {} };
-    return normalizeSettings(JSON.parse(raw) as unknown);
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new SyntaxError("invalid settings");
+    }
+    return normalizeSettings(parsed);
   } catch {
     return { ...DEFAULT_SETTINGS, remap: {} };
   }

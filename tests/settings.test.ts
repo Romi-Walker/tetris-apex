@@ -63,3 +63,13 @@ describe("settings load/save", () => {
     expect(resolveControl("Escape", loaded.remap)).toBe("pause");
   });
 });
+
+describe("settings broken JSON", () => {
+  it("loadSettings with invalid JSON, null, and array returns DEFAULT_SETTINGS", () => {
+    for (const raw of ["{not json", "null", "[]"]) {
+      const storage = memStore({ [SETTINGS_KEY]: raw });
+      const loaded = loadSettings(storage);
+      expect(loaded).toEqual({ ...DEFAULT_SETTINGS, remap: {} });
+    }
+  });
+});
