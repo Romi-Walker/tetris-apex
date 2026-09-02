@@ -19,3 +19,14 @@ export type {
   PieceType,
   Position,
 } from "./types";
+
+export {
+  levelFromLines,
+  gravityMsForLevel,
+  lockMsForLevel,
+  dropPoints,
+  detectTSpin,
+  scoreLock,
+} from "./score";
+export type { TSpinKind, LastAction } from "./score";
+

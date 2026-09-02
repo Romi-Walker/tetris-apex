@@ -54,6 +54,13 @@ export interface GameSnapshot {
   lockElapsed: number;
   linesClearedTotal: number;
   lastClearCount: number;
+  score: number;
+  level: number;
+  combo: number;
+  b2b: boolean;
+  timeMs: number;
+  piecesLocked: number;
+  pps: number;
 }
 
 export interface GameOptions {

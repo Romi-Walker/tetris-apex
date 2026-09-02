@@ -28,6 +28,10 @@ export function createKeyboard(handlers: {
   dispatch(action: InputAction): void;
 }): KeyboardInput {
   function onKeyDown(event: KeyboardEvent): void {
+    const target = event.target;
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      return;
+    }
     const { code } = event;
     if (PREVENT.has(code)) {
       event.preventDefault();

@@ -3,6 +3,18 @@ import { clearLines, cloneGrid, collides, emptyGrid, lockPiece } from "./board";
 import { kicksFor } from "./kicks";
 import { cellsOf, spawnOriginX, spawnOriginY } from "./pieces";
 import {
+  classifyTSpin,
+  dropPoints,
+  gravityMsForLevel,
+  isGridEmpty,
+  levelFromLines,
+  lockMsForLevel,
+  piecesPerSecond,
+  scoreLock,
+  tSpinCornerCount,
+  type LastAction,
+} from "./score";
+import {
   COLS,
   ROWS,
   VISIBLE_START_ROW,
@@ -16,8 +28,6 @@ import {
   type Position,
 } from "./types";
 
-const DEFAULT_GRAVITY_MS = 800;
-const DEFAULT_LOCK_MS = 500;
 const DEFAULT_SOFT_DROP_MS = 50;
 const DEFAULT_DAS_MS = 133;
 const DEFAULT_ARR_MS = 33;
@@ -31,6 +41,9 @@ interface LivePiece {
   x: number;
   y: number;
   rotation: number;
+  lastAction: LastAction | null;
+  lastKickIndex: number;
+  usedKick: boolean;
 }
 
 interface InternalState {
@@ -51,11 +64,14 @@ interface InternalState {
   dasCharged: boolean;
   linesClearedTotal: number;
   lastClearCount: number;
+  score: number;
+  combo: number;
+  b2b: boolean;
+  timeMs: number;
+  piecesLocked: number;
 }
 
 export function createGame(options: GameOptions = {}): Game {
-  const gravityMs = options.gravityMs ?? DEFAULT_GRAVITY_MS;
-  const lockMs = options.lockMs ?? DEFAULT_LOCK_MS;
   const softDropMs = options.softDropMs ?? DEFAULT_SOFT_DROP_MS;
   const dasMs = options.dasMs ?? DEFAULT_DAS_MS;
   const arrMs = options.arrMs ?? DEFAULT_ARR_MS;
@@ -64,6 +80,18 @@ export function createGame(options: GameOptions = {}): Game {
   const initialGrid = options.grid ? cloneGrid(options.grid) : emptyGrid();
 
   let state: InternalState = boot();
+
+  function currentLevel(s: InternalState = state): number {
+    return levelFromLines(s.linesClearedTotal);
+  }
+
+  function currentGravityMs(s: InternalState = state): number {
+    return options.gravityMs ?? gravityMsForLevel(currentLevel(s));
+  }
+
+  function currentLockMs(s: InternalState = state): number {
+    return options.lockMs ?? lockMsForLevel(currentLevel(s));
+  }
 
   function boot(): InternalState {
     const next: InternalState = {
@@ -84,6 +112,11 @@ export function createGame(options: GameOptions = {}): Game {
       dasCharged: false,
       linesClearedTotal: 0,
       lastClearCount: 0,
+      score: 0,
+      combo: 0,
+      b2b: false,
+      timeMs: 0,
+      piecesLocked: 0,
     };
     spawn(next);
     return next;
@@ -109,12 +142,33 @@ export function createGame(options: GameOptions = {}): Game {
     return cellsOf(piece.type, piece.x, gy, piece.rotation);
   }
 
+  function snapDown(s: InternalState): number {
+    let cells = 0;
+    while (tryMove(0, 1, false, s)) {
+      cells += 1;
+    }
+    return cells;
+  }
+
+  function applyInfiniteGravity(s: InternalState): void {
+    if (s.gameOver || !s.active) return;
+    if (currentGravityMs(s) > 0) return;
+    snapDown(s);
+    const piece = s.active;
+    if (piece && grounded(s, piece)) {
+      s.locking = true;
+    }
+  }
+
   function placePiece(s: InternalState, type: PieceType): void {
     const piece: LivePiece = {
       type,
       x: spawnOriginX(type),
       y: spawnOriginY(type),
       rotation: 0,
+      lastAction: null,
+      lastKickIndex: 0,
+      usedKick: false,
     };
     s.active = piece;
     s.locking = false;
@@ -123,7 +177,9 @@ export function createGame(options: GameOptions = {}): Game {
     s.gravityElapsed = 0;
     if (collides(s.grid, piece.type, piece.x, piece.y, piece.rotation)) {
       s.gameOver = true;
+      return;
     }
+    applyInfiniteGravity(s);
   }
 
   function spawn(s: InternalState, type?: PieceType): void {
@@ -151,8 +207,13 @@ export function createGame(options: GameOptions = {}): Game {
     }
   }
 
-  function tryMove(dx: number, dy: number, resetLock: boolean): boolean {
-    const s = state;
+  function tryMove(
+    dx: number,
+    dy: number,
+    resetLock: boolean,
+    target: InternalState = state,
+  ): boolean {
+    const s = target;
     if (s.gameOver || !s.active) return false;
     const piece = s.active;
     const nx = piece.x + dx;
@@ -162,6 +223,8 @@ export function createGame(options: GameOptions = {}): Game {
     }
     piece.x = nx;
     piece.y = ny;
+    if (dy > 0) piece.lastAction = "drop";
+    else if (dx !== 0) piece.lastAction = "move";
     if (resetLock) {
       onShiftOrRotate();
     } else if (s.locking && !grounded(s, piece)) {
@@ -178,13 +241,19 @@ export function createGame(options: GameOptions = {}): Game {
     const from = piece.rotation;
     const to = (from + delta + 4) % 4;
     const kicks = kicksFor(piece.type, from, to);
-    for (const [kx, ky] of kicks) {
+    for (let i = 0; i < kicks.length; i++) {
+      const kick = kicks[i];
+      if (!kick) continue;
+      const [kx, ky] = kick;
       const nx = piece.x + kx;
       const ny = piece.y + ky;
       if (!collides(s.grid, piece.type, nx, ny, to)) {
         piece.x = nx;
         piece.y = ny;
         piece.rotation = to;
+        piece.lastAction = "rotate";
+        piece.lastKickIndex = i;
+        piece.usedKick = i > 0;
         onShiftOrRotate();
         return true;
       }
@@ -197,9 +266,31 @@ export function createGame(options: GameOptions = {}): Game {
     const piece = s.active;
     if (!piece) return;
     lockPiece(s.grid, piece.type, piece.x, piece.y, piece.rotation);
+    const corners =
+      piece.type === "T" && piece.lastAction === "rotate"
+        ? tSpinCornerCount(s.grid, piece.x, piece.y)
+        : 0;
     const cleared = clearLines(s.grid);
+    const tSpin =
+      piece.type === "T" && piece.lastAction === "rotate"
+        ? classifyTSpin(corners, piece.usedKick, cleared)
+        : "none";
+    const pc = isGridEmpty(s.grid);
+    const level = currentLevel(s);
+    const awarded = scoreLock({
+      lines: cleared,
+      tSpin,
+      level,
+      b2bReady: s.b2b,
+      comboCount: s.combo,
+      perfectClear: pc,
+    });
+    s.score += awarded.points;
+    s.b2b = awarded.nextB2b;
+    s.combo = awarded.nextCombo;
     s.lastClearCount = cleared;
     s.linesClearedTotal += cleared;
+    s.piecesLocked += 1;
     s.active = null;
     s.locking = false;
     s.lockElapsed = 0;
@@ -228,9 +319,11 @@ export function createGame(options: GameOptions = {}): Game {
   function hardDrop(): void {
     const s = state;
     if (s.gameOver || !s.active) return;
+    let cells = 0;
     while (tryMove(0, 1, false)) {
-      // fall
+      cells += 1;
     }
+    s.score += dropPoints(cells, "hard");
     lockActive();
   }
 
@@ -318,7 +411,9 @@ export function createGame(options: GameOptions = {}): Game {
     if (s.gameOver || !s.active) return;
     s.softHeld = true;
     s.gravityElapsed = 0;
-    stepDown();
+    if (stepDown()) {
+      s.score += dropPoints(1, "soft");
+    }
   }
 
   function onSoftUp(): void {
@@ -330,10 +425,13 @@ export function createGame(options: GameOptions = {}): Game {
     const s = state;
     if (s.gameOver || !s.active) return;
     const ms = Math.max(0, dt);
+    s.timeMs += ms;
 
     tickDas(ms);
 
     if (s.gameOver || !s.active) return;
+
+    const lockMs = currentLockMs(s);
 
     if (s.locking) {
       if (!grounded(s, s.active)) {
@@ -355,13 +453,21 @@ export function createGame(options: GameOptions = {}): Game {
       return;
     }
 
-    const interval = s.softHeld ? softDropMs : gravityMs;
+    if (currentGravityMs(s) <= 0 && !s.softHeld) {
+      applyInfiniteGravity(s);
+      return;
+    }
+
+    const interval = s.softHeld ? softDropMs : currentGravityMs(s);
     s.gravityElapsed += ms;
-    while (s.gravityElapsed >= interval) {
+    while (interval > 0 && s.gravityElapsed >= interval) {
       s.gravityElapsed -= interval;
       if (!stepDown()) {
         s.gravityElapsed = 0;
         break;
+      }
+      if (s.softHeld) {
+        s.score += dropPoints(1, "soft");
       }
     }
   }
@@ -423,6 +529,7 @@ export function createGame(options: GameOptions = {}): Game {
 
   function getSnapshot(): GameSnapshot {
     const s = state;
+    const level = currentLevel(s);
     return {
       cols: COLS,
       rows: ROWS,
@@ -438,6 +545,13 @@ export function createGame(options: GameOptions = {}): Game {
       lockElapsed: s.lockElapsed,
       linesClearedTotal: s.linesClearedTotal,
       lastClearCount: s.lastClearCount,
+      score: s.score,
+      level,
+      combo: s.combo,
+      b2b: s.b2b,
+      timeMs: s.timeMs,
+      piecesLocked: s.piecesLocked,
+      pps: piecesPerSecond(s.piecesLocked, s.timeMs),
     };
   }
 
