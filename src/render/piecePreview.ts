@@ -1,16 +1,17 @@
 import { cellsOf, type PieceType } from "../engine";
-import { PIECE_COLORS, WELL_BG } from "./colors";
+import { css, type ThemePalette } from "../theme";
 
 export function drawPiecePreview(
   canvas: HTMLCanvasElement,
   type: PieceType | null,
+  palette: ThemePalette,
 ): void {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const w = canvas.width;
   const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = WELL_BG;
+  ctx.fillStyle = css(palette.well);
   ctx.fillRect(0, 0, w, h);
   if (!type) return;
 
@@ -26,7 +27,7 @@ export function drawPiecePreview(
   const originX = (w - pw * cell) / 2;
   const originY = (h - ph * cell) / 2;
 
-  ctx.fillStyle = PIECE_COLORS[type];
+  ctx.fillStyle = css(palette.pieces[type]);
   for (const c of cells) {
     const px = originX + (c.x - minX) * cell;
     const py = originY + (c.y - minY) * cell;

@@ -60,12 +60,16 @@ export function sortAndTrim(entries: HighscoreEntry[]): HighscoreEntry[] {
 }
 
 export function qualifiesForHighscore(score: number, list: HighscoreEntry[] = loadHighscores()): boolean {
+  if (score <= 0) return false;
   if (list.length < HIGHSCORE_LIMIT) return true;
   const lowest = list[list.length - 1];
   return lowest !== undefined && score >= lowest.score;
 }
 
 export function addHighscore(entry: Omit<HighscoreEntry, "date"> & { date?: string }): HighscoreEntry[] {
+  if (entry.score <= 0) {
+    return loadHighscores();
+  }
   const next: HighscoreEntry = {
     name: sanitizeName(entry.name),
     date: entry.date ?? new Date().toISOString(),
@@ -79,4 +83,19 @@ export function addHighscore(entry: Omit<HighscoreEntry, "date"> & { date?: stri
     store.setItem(HIGHSCORE_KEY, JSON.stringify(list));
   }
   return list;
+}
+
+export function fillHighscoreList(listEl: HTMLElement, entries: HighscoreEntry[]): void {
+  listEl.replaceChildren();
+  for (const entry of entries) {
+    const li = document.createElement("li");
+    const date = entry.date.slice(0, 10);
+    li.textContent = `${entry.name}  ${entry.score}  Lv${entry.level}  ${entry.lines}L  ${date}`;
+    listEl.appendChild(li);
+  }
+  if (entries.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Noch keine Einträge";
+    listEl.appendChild(li);
+  }
 }

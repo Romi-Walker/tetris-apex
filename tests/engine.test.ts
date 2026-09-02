@@ -92,6 +92,7 @@ describe("line clear", () => {
     const snap = game.getSnapshot();
     expect(snap.linesClearedTotal).toBe(1);
     expect(snap.lastClearCount).toBe(1);
+    expect(snap.lastClearedRows).toEqual([21]);
     expect(snap.grid[21]![9]).toBe("T");
     expect(snap.grid[21]![0]).toBe("I");
     expect(snap.grid[21]!.every((c) => c !== "Z")).toBe(true);

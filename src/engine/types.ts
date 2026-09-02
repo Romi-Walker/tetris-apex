@@ -54,6 +54,7 @@ export interface GameSnapshot {
   lockElapsed: number;
   linesClearedTotal: number;
   lastClearCount: number;
+  lastClearedRows: number[];
   score: number;
   level: number;
   combo: number;

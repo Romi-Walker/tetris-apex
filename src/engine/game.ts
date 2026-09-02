@@ -1,5 +1,5 @@
 import { createBagRandomizer } from "./bag";
-import { clearLines, cloneGrid, collides, emptyGrid, lockPiece } from "./board";
+import { clearLines, cloneGrid, collides, emptyGrid, findFullRows, lockPiece } from "./board";
 import { kicksFor } from "./kicks";
 import { cellsOf, spawnOriginX, spawnOriginY } from "./pieces";
 import {
@@ -64,6 +64,7 @@ interface InternalState {
   dasCharged: boolean;
   linesClearedTotal: number;
   lastClearCount: number;
+  lastClearedRows: number[];
   score: number;
   combo: number;
   b2b: boolean;
@@ -112,6 +113,7 @@ export function createGame(options: GameOptions = {}): Game {
       dasCharged: false,
       linesClearedTotal: 0,
       lastClearCount: 0,
+      lastClearedRows: [],
       score: 0,
       combo: 0,
       b2b: false,
@@ -270,6 +272,7 @@ export function createGame(options: GameOptions = {}): Game {
       piece.type === "T" && piece.lastAction === "rotate"
         ? tSpinCornerCount(s.grid, piece.x, piece.y)
         : 0;
+    const lastClearedRows = findFullRows(s.grid);
     const cleared = clearLines(s.grid);
     const tSpin =
       piece.type === "T" && piece.lastAction === "rotate"
@@ -289,6 +292,7 @@ export function createGame(options: GameOptions = {}): Game {
     s.b2b = awarded.nextB2b;
     s.combo = awarded.nextCombo;
     s.lastClearCount = cleared;
+    s.lastClearedRows = lastClearedRows;
     s.linesClearedTotal += cleared;
     s.piecesLocked += 1;
     s.active = null;
@@ -545,6 +549,7 @@ export function createGame(options: GameOptions = {}): Game {
       lockElapsed: s.lockElapsed,
       linesClearedTotal: s.linesClearedTotal,
       lastClearCount: s.lastClearCount,
+      lastClearedRows: s.lastClearedRows.slice(),
       score: s.score,
       level,
       combo: s.combo,

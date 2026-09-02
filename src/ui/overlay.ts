@@ -1,28 +1,19 @@
 import type { GameSnapshot } from "../engine";
 import {
   addHighscore,
+  fillHighscoreList,
   loadHighscores,
   qualifiesForHighscore,
   sanitizeName,
-  type HighscoreEntry,
 } from "./highscore";
 
-function renderList(listEl: HTMLElement, entries: HighscoreEntry[]): void {
-  listEl.replaceChildren();
-  for (const entry of entries) {
-    const li = document.createElement("li");
-    const date = entry.date.slice(0, 10);
-    li.textContent = `${entry.name}  ${entry.score}  Lv${entry.level}  ${entry.lines}L  ${date}`;
-    listEl.appendChild(li);
-  }
-  if (entries.length === 0) {
-    const li = document.createElement("li");
-    li.textContent = "Noch keine Einträge";
-    listEl.appendChild(li);
-  }
-}
-
-export function createOverlay(root: HTMLElement, onRestart: () => void): {
+export function createOverlay(
+  root: HTMLElement,
+  handlers: {
+    onRestart: () => void;
+    onTitle: () => void;
+  },
+): {
   update(snapshot: GameSnapshot): void;
 } {
   const overlay = root.querySelector<HTMLElement>("#overlay");
@@ -32,6 +23,7 @@ export function createOverlay(root: HTMLElement, onRestart: () => void): {
   const nameInput = root.querySelector<HTMLInputElement>("#highscore-name");
   const listEl = root.querySelector<HTMLElement>("#highscore-list");
   const restartBtn = root.querySelector<HTMLButtonElement>("#restart");
+  const titleBtn = root.querySelector<HTMLButtonElement>("#btn-gameover-title");
 
   let lastGameOver = false;
   let submitted = false;
@@ -48,12 +40,17 @@ export function createOverlay(root: HTMLElement, onRestart: () => void): {
     });
     submitted = true;
     if (form) form.classList.add("hidden");
-    if (listEl) renderList(listEl, loadHighscores());
+    if (listEl) fillHighscoreList(listEl, loadHighscores());
   }
 
   restartBtn?.addEventListener("click", () => {
     savePending();
-    onRestart();
+    handlers.onRestart();
+  });
+
+  titleBtn?.addEventListener("click", () => {
+    savePending();
+    handlers.onTitle();
   });
 
   form?.addEventListener("submit", (event) => {
@@ -77,7 +74,7 @@ export function createOverlay(root: HTMLElement, onRestart: () => void): {
           if (qualifies) nameInput.focus();
         }
       }
-      if (listEl) renderList(listEl, loadHighscores());
+      if (listEl) fillHighscoreList(listEl, loadHighscores());
       lastGameOver = true;
     } else {
       if (lastGameOver) savePending();

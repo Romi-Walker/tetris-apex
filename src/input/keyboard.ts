@@ -22,10 +22,13 @@ const PREVENT = new Set([
   "ShiftRight",
   "ControlLeft",
   "ControlRight",
+  "Escape",
 ]);
 
 export function createKeyboard(handlers: {
   dispatch(action: InputAction): void;
+  onEscape?: () => void;
+  onEnter?: () => void;
 }): KeyboardInput {
   function onKeyDown(event: KeyboardEvent): void {
     const target = event.target;
@@ -33,10 +36,19 @@ export function createKeyboard(handlers: {
       return;
     }
     const { code } = event;
-    if (PREVENT.has(code)) {
+    if (PREVENT.has(code) || code === "Enter") {
       event.preventDefault();
     }
     if (event.repeat) return;
+
+    if (code === "Escape") {
+      handlers.onEscape?.();
+      return;
+    }
+    if (code === "Enter") {
+      handlers.onEnter?.();
+      return;
+    }
 
     switch (code) {
       case "ArrowLeft":

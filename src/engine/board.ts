@@ -43,6 +43,20 @@ export function lockPiece(
   }
 }
 
+
+/** Indexes of currently complete rows (does not mutate). */
+export function findFullRows(grid: Grid): number[] {
+  const rows: number[] = [];
+  for (let y = 0; y < ROWS; y++) {
+    const row = grid[y];
+    if (!row) continue;
+    if (row.every((cell) => cell !== null)) {
+      rows.push(y);
+    }
+  }
+  return rows;
+}
+
 /** Remove full rows; remaining cells fall down. Returns number of cleared rows. */
 export function clearLines(grid: Grid): number {
   const kept: Grid = [];
